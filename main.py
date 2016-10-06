@@ -161,7 +161,7 @@ def main():
                                  })
 
     teacher_enrollments = (teacher_enrollments
-                           .unique()
+                           .distinct()
                            .join(teacher_codes, key='teacher_id')
                            .join(staff_id_map, key='teacher_code')
                            .join(class_codes, key='class_id')
@@ -170,7 +170,7 @@ def main():
                            .addfield('role', 'teacher'))
 
     student_enrollments = (student_enrollments
-                           .unique()
+                           .distinct()
                            .join(student_codes, key='student_id')
                            .cut('class_code', 'student_code')
                            .rename('student_code', 'user_id')
@@ -200,6 +200,10 @@ def main():
                 .addfield('name', lambda rec: rec['old_course_id'])
                 .addfield('status', 'active')
                 .cut('section_id', 'course_id', 'name', 'status'))
+
+    # Remove users with no enrollments
+    enrolled_users = enrollments.cut('user_id').addfield('enrolled', True).distinct(key='user_id')
+    people = people.join(enrolled_users, key='user_id').select('enrolled', lambda v: v is True).cutout('enrolled')
 
     people.tocsv('csvs/users.csv')
     enrollments.tocsv('csvs/enrollments.csv')
