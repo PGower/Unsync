@@ -1,0 +1,148 @@
+sync_key: smc_canvas_unsync
+
+term_sis_id: t4_2016
+
+merged_courses:
+  11LST_COMBINED_T4:
+    - 11LST3A
+    - 11LST4B
+  11ACC_COMBINED_T4:
+    - 11ACC5A
+    - 11ACC7B
+  12SIS310C_COMBINED_T4:
+    - 12SIS310C33A
+    - 12SIS310C37B
+  10HPE_COMBINED_T4:
+    - 10HPEC2B
+    - 10HPED
+    - 10HPEE
+  12SCI21_COMBINED_T4:
+    - 12SCI216A
+    - 12SCI217B
+  07SCI_COMBINED_T4:
+    - 07SCIA
+    - 07SCIB
+    - 07SCIC
+    - 07SCID
+  11CHE_COMBINED_T4:
+    - 11CHE4A
+    - 11CHE7B
+  09HPE_COMBINED_T4:
+    - 09HPEC
+    - 09HPED
+  11SCI21_COMBINED_T4:
+    - 11SCI216A
+    - 11SCI217B
+  12CHE_COMBINED_T4:
+    - 12CHE4A
+    - 12CHE7B
+  08HUM_COMBINED_T4:
+    - 08HUMA
+    - 08HUMB
+    - 08HUMC
+    - 08HUMD
+    - 08HUME
+  12BIO_COMBINED_T4:
+    - 12BIO3A
+    - 12BIO6B
+  11PE_COMBINED_T4:
+    - 11PE3A
+    - 11PE5B
+  12ACC_COMBINED_T4:
+    - 12ACC3A
+    - 12ACC5B
+  08HPE_COMBINED_T4:
+    - 08HPEB
+    - 08HPED
+  12MAA_COMBINED_T4:
+    - 12MAA2A
+    - 12MAA2B
+  12LST_COMBINED_T4:
+    - 12LST3A
+    - 12LST4B
+  08SCI_COMBINED_T4:
+    - 08SCIA
+    - 08SCIB
+    - 08SCIC
+    - 08SCID
+    - 08SCIE
+  10SEL_COMBINED_T4:
+    - GP-10SELA
+    - GP-10SELB
+    - GP-10SELC
+    - GP-10SELD
+  11BIO_COMBINED_T4:
+    - 11BIO3A
+    - 11BIO5A
+    - 11BIO6B
+  09SCI_COMBINED_T4:
+    - 09SCIA
+    - 09SCIB
+    - 09SCIC
+    - 09SCID
+
+ignored_course_patterns:
+  - '^[BGLR]{1}[1-9]{1}$'
+  - '^GP-[0-9]{2}ACT.*$'
+  - '^ASM-.*$'
+  - '^.+QCS.+$'
+  - '^PAS-.*$'
+  - '^BREAK-.*$'
+  - '^[0-9]{2}ASM.*$'
+  - '^ACT$'
+  - '^[0-9]{2}ACT$'
+  - '^.+WRK.*$'
+  - '^[0-9]{2}WRK.*$'
+  - '^[0-9]{2}(STU|LAN).*$'
+
+account_course_patterns:
+  junior_maths: '^(07|08|09|10)MAT[A-Z].*'
+  maths_a: '^(11|12)MAA.*'
+  maths_b: '^(11|12)MAB.*'
+  maths_c: '^(11|12)MAC.*'
+  english: '^[0-9]{2}(ENG|LIT).*'
+  science: '^[0-9]{2}(SCI|ISCI).*$'
+  biology: '^[0-9]{2}BIO.*'
+  chemistry: '^[0-9]{2}CHE.*'
+  physics: '^[0-9]{2}PHY.*'
+  religion: '^[0-9]{2}RE[A-Z]{1}.*$'
+  sor: '^[0-9]{2}SOR.*$'
+  visual_arts: '^[0-9]{2}(CRA|VAR).*$'
+  dance: '^[0-9]{2}DAN.*$'
+  drama: '^[0-9]{2}DRA.*$'
+  music: '^[0-9]{2}MUS.*$'
+  ict: '^[0-9]{2}(ICT|ITS).*$'
+  textiles: '^[0-9]{2}TEX.*$'
+  foodtech: '^[0-9]{2}FTEC.*$'
+  homeec: '^[0-9]{2}HEC.*$'
+  italian: '^[0-9]{2}ITL.*$'
+  japanese: '^[0-9]{2}JAP.*$'
+  chinese: '^[0-9]{2}CHI.*$'
+  humanities: '^[0-9]{2}HUM.*$'
+  legal: '^[0-9]{2}LS[A-Z]{1}.*$'
+  business: '^[0-9]{2}BUS.*$'
+  geography: '^[0-9]{2}GEO.*$'
+  accounting: '^[0-9]{2}ACC.*$'
+  rae: '^[0-9]{2}RAE.*$'
+  ecom: '^[0-9]{2}ECOM.*$'
+  history: '^[0-9]{2}(HIS|MHI).*$'
+  maths: '^[0-9]{2}(NUM|PVM).*$'
+  hpe: '^[0-9]{2}(HPE|SIS).*$'
+  pe: '^[0-9]{2}PE.*$'
+  designtech: '^[0-9]{2}(DT|DTF|ITD|IDT).*$'
+  sel: '^(GP-[0-9]{2}SEL.*|[0-9]{2}PD.*)'
+
+fake_users:
+  # Each fake user is a dictionary, the key is the username (its not really important, just needs to be unique)
+  awinter99:
+    # expires is a date in the format dd/mm/yy, after this date the user (and enrollments) will drop out.
+    expires:
+    # data expects 6 keys and ignores all other keys. Will discard user if the below 6 keys are not present
+    data:
+      # user_id must be globally unique (especially with normal users). Generally the username will do the trick.
+      user_id: awinter99
+      login_id: awinter99
+      first_name: Andy
+      last_name: Winter
+      # Does not have to be a school email
+      email: awinter@gmail.com
