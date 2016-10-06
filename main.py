@@ -24,7 +24,7 @@ def main():
     # import config
     with open('config.yaml', 'r') as f:
         config = yaml.load(f)
-    
+
     # Setup some constants
     term_id = config['term_sis_id']
 
@@ -86,25 +86,16 @@ def main():
     for i in config['merged_courses']:
         courses = courses.cat([['course_id', 'short_name', 'long_name', 'term_id', 'status', 'account_id'], [i, i, i, term_id, 'active', '']])
 
-    courses.tocsv('csvs/courses.csv')
-
     # USERS / PERSONS
-    ad_students = petl.fromldap(ad_conn(),
-                                base_ou='OU=Student Users,OU=Automated Objects,DC=stmonicas,DC=qld,DC=edu,DC=au',
-                                query='(&(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))',
-                                attributes=['givenName', 'sn', 'mail', 'employeeID', 'sAMAccountName'])
-    ga_students = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Students/{http://www.timetabling.com.au/TDV9}Student',
-                               {
-                                 'Student Code': '{http://www.timetabling.com.au/TDV9}Code',
-                                 'Gender': '{http://www.timetabling.com.au/TDV9}Gender',
-                                 'House': '{http://www.timetabling.com.au/TDV9}House',
-                                 'Home Group': '{http://www.timetabling.com.au/TDV9}HomeGroup',
-                                 'Year Level': '{http://www.timetabling.com.au/TDV9}YearLevel',
-                                 'Roll Class Code': '{http://www.timetabling.com.au/TDV9}RollClass',
-                                 'Last Name': '{http://www.timetabling.com.au/TDV9}FamilyName',
-                                 'First Name': '{http://www.timetabling.com.au/TDV9}FirstName',
-                                 'Middle Name': '{http://www.timetabling.com.au/TDV9}MiddleName'
-                               })
+    students = petl.fromldap(ad_conn(),
+                             base_ou='OU=Student Users,OU=Automated Objects,DC=stmonicas,DC=qld,DC=edu,DC=au',
+                             query='(&(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))',
+                             attributes=['givenName', 'sn', 'mail', 'employeeID', 'sAMAccountName'])
+    students = petl.wrap(students)
+    students = (students
+                .rename({'givenName': 'first_name', 'sn': 'last_name', 'mail': 'email', 'employeeID': 'user_id', 'sAMAccountName': 'login_id'})
+                .select('user_id', lambda v: v is not None and v != '')  # Filter out records with no user_id, they are useless
+                .convert('user_id', lambda v: str(v)[1:] if str(v).startswith('c') else v))  # Remove the c from the user_id
 
     ad_staff = petl.fromldap(ad_conn(),
                              base_ou='OU=School Staff,OU=Staff Users,OU=Automated Objects,DC=stmonicas,DC=qld,DC=edu,DC=au',
@@ -117,162 +108,83 @@ def main():
                                     attributes=['givenName', 'sn', 'mail', 'employeeID', 'sAMAccountName', 'extensionAttribute2'],
                                     defaults={'extensionAttribute2': None})
 
-    # Students
-    ad_students_1 = petl.transform.rename(ad_students, {
-                                          'givenName': 'firstname',
-                                          'sn': 'surname',
-                                          'mail': 'email'
-                                          })
-    ad_students_1 = petl.sort(ad_students_1, 'employeeID')
-    ad_students_1 = petl.convert(ad_students_1, 'employeeID', lambda v: str(v))
+    staff = petl.cat(ad_staff, ad_relief_staff)
+    staff = petl.wrap(staff)
+    staff = (staff
+             .rename({'givenName': 'first_name', 'sn': 'last_name', 'mail': 'email', 'employeeID': 'user_id', 'sAMAccountName': 'login_id'})
+             .select('user_id', lambda v: v is not None and v != '')  # Filter out records with no user_id, they are useless
+             .convert('user_id', lambda v: str(v)[1:] if str(v).startswith('c') else v))  # Remove the c from the user_id
+    staff_id_map = staff.cut('user_id', 'extensionAttribute2')
+    staff = staff.cut('first_name', 'last_name', 'email', 'user_id', 'login_id')
+    staff_id_map = (staff_id_map
+                    .rename({'user_id': 'canvas_id', 'extensionAttribute2': 'teacher_code'})
+                    .select('teacher_code', lambda v: v is not None)
+                    .convert('teacher_code', lambda v: str(v)))
 
-    ga_students_1 = petl.transform.rename(ga_students, {
-                                          'Student Code': 'sas_id',
-                                          'Gender': 'gender',
-                                          'House': 'homeform',
-                                          'Home Group': 'homeform',
-                                          'Year Level': 'yearlevel'
-                                          })
-    ga_students_2 = petl.transform.cut(ga_students_1, 'sas_id', 'gender', 'homeform', 'yearlevel')
-    ga_students_3 = petl.transform.addfield(ga_students_2, 'employeeID', lambda rec: 'c{}'.format(rec['sas_id']))
-    ga_students_3 = petl.sort(ga_students_3, 'employeeID')
-    ga_students_3 = petl.convert(ga_students_3, 'employeeID', lambda v: str(v))
-
-    combined_students = petl.transform.join(ad_students_1, ga_students_3, 'employeeID')
-    combined_students = petl.wrap(combined_students)
-    combined_students = (combined_students
-                         .addfield('preferredname', lambda rec: rec['firstname'])
-                         .addfield('middlename', '')
-                         .addfield('birthdate', None)
-                         .convert('yearlevel', int)
-                         .addfield('role', 'student'))
-
-    # Teachers
-    ad_staff = petl.transform.addfield(ad_staff, 'role', 'staff')
-    ad_staff = petl.rename(ad_staff, 'extensionAttribute2', 'sas_id')
-    ad_relief_staff = petl.transform.addfield(ad_relief_staff, 'role', 'relief_teacher')
-    ad_relief_staff = petl.rename(ad_relief_staff, 'extensionAttribute2', 'sas_id')
-
-    combined_staff = petl.transform.cat(ad_staff, ad_relief_staff)
-    combined_staff = petl.wrap(combined_staff)
-    combined_staff = (combined_staff
-                      .rename({
-                          'givenName': 'firstname',
-                          'sn': 'surname',
-                          'mail': 'email',
-                      })
-                      .addfield('gender', None)
-                      .addfield('homeform', None)
-                      .addfield('yearlevel', None)
-                      .addfield('preferredname', lambda rec: rec['firstname'])
-                      .addfield('birthdate', None)
-                      .addfield('middlename', None)
-                      .convert('role', lambda v, rec: 'teacher' if rec['sas_id'] is not None else rec['role'], pass_row=True))
-    people_1 = petl.transform.cat(combined_students, combined_staff)
-    people_2 = petl.transform.addfield(people_1, 'id', lambda rec: rec['employeeID'][1:] if rec['employeeID'].startswith(('c', 'C')) else rec['employeeID'])
-    people = petl.transform.convert(people_2, 'id', int)
-    people = petl.wrap(people)
+    people = petl.cat(students, staff)
     people = (people
-              .rename('id', 'user_id')
-              .rename('sAMAccountName', 'login_id')
-              .addfield('full_name', lambda rec: '{} {}'.format(rec['firstname'], rec['surname']))
               .addfield('status', 'active')
-              .rename('firstname', 'first_name')
-              .rename('surname', 'last_name')
-              .cut('user_id', 'login_id', 'first_name', 'last_name', 'full_name', 'email', 'status'))
+              .addfield('full_name', lambda rec: '{} {}'.format(rec['first_name'], rec['last_name']))
+              .cut('user_id', 'login_id', 'first_name', 'last_name', 'full_name', 'email', 'status')
+              .sort('user_id'))
 
-    people.tocsv('csvs/users.csv')
-    
     # ENROLLMENTS
-    student_source = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}StudentLessons/{http://www.timetabling.com.au/TDV9}StudentLesson',
-                                  {
-                                     'student_id': '{http://www.timetabling.com.au/TDV9}StudentID',
-                                     'Class Code': '{http://www.timetabling.com.au/TDV9}ClassCode'
-                                  })
-    student_source = petl.wrap(student_source)
-    student_codes = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Students/{http://www.timetabling.com.au/TDV9}Student',
-                                 {
-                                    'student_id': '{http://www.timetabling.com.au/TDV9}StudentID',
-                                    'Student Code': '{http://www.timetabling.com.au/TDV9}Code',
-                                 })
-    student_source = petl.join(student_source, student_codes, key='student_id')
-    student_source = (student_source
-                      .rename('Student Code', 'person_id')
-                      .rename('Class Code', 'klass_id')
-                      .addfield('kind', 'student')
-                      .addfieldusingcontext('id', lambda prv, cur, nxt: '{}_{}_{}'.format(cur.person_id, cur.klass_id, cur.kind))
-                      .cut('kind', 'person_id', 'klass_id', 'id'))
+    student_enrollments = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}StudentLessons/{http://www.timetabling.com.au/TDV9}StudentLesson',
+                                       {
+                                          'student_id': '{http://www.timetabling.com.au/TDV9}StudentID',
+                                          'class_code': '{http://www.timetabling.com.au/TDV9}ClassCode'
+                                       })
+    student_enrollments = petl.wrap(student_enrollments)
 
-    ad_staff = petl.fromldap(ad_conn(),
-                             base_ou='OU=School Staff,OU=Staff Users,OU=Automated Objects,DC=stmonicas,DC=qld,DC=edu,DC=au',
-                             query='(&(objectClass=user)(extensionAttribute2=*))',
-                             attributes=['employeeID', 'extensionAttribute2'])
-    ad_staff = petl.convert(ad_staff, 'extensionAttribute2', str)
-    ad_staff = petl.convert(ad_staff, 'employeeID', str)
+    teacher_enrollments = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Timetables/{http://www.timetabling.com.au/TDV9}Timetable',
+                                       {
+                                          'teacher_id': '{http://www.timetabling.com.au/TDV9}TeacherID',
+                                          'class_id': '{http://www.timetabling.com.au/TDV9}ClassID'
+                                       })
+    teacher_enrollments = petl.wrap(teacher_enrollments)
 
-    teacher_source = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Timetables/{http://www.timetabling.com.au/TDV9}Timetable',
-                                  {
-                                     'teacher_id': '{http://www.timetabling.com.au/TDV9}TeacherID',
-                                     'room_id': '{http://www.timetabling.com.au/TDV9}RoomID',
-                                     'period_id': '{http://www.timetabling.com.au/TDV9}PeriodID',
-                                     'class_id': '{http://www.timetabling.com.au/TDV9}ClassID'
-                                  })
     class_codes = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Classes/{http://www.timetabling.com.au/TDV9}Class',
                                {
                                   'class_id': '{http://www.timetabling.com.au/TDV9}ClassID',
-                                  'Class Code': '{http://www.timetabling.com.au/TDV9}Code'
+                                  'class_code': '{http://www.timetabling.com.au/TDV9}Code'
                                })
+
     teacher_codes = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Teachers/{http://www.timetabling.com.au/TDV9}Teacher', {
-                                    'teacher_id': '{http://www.timetabling.com.au/TDV9}TeacherID',
-                                    'Teacher Code': '{http://www.timetabling.com.au/TDV9}Code'
-                                 })
-    day_codes = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Days/{http://www.timetabling.com.au/TDV9}Day', 
-                             {
-                                'day_id': '{http://www.timetabling.com.au/TDV9}DayID',
+                                'teacher_id': '{http://www.timetabling.com.au/TDV9}TeacherID',
+                                'teacher_code': '{http://www.timetabling.com.au/TDV9}Code'
                              })
-    day_codes = petl.addrownumbers(day_codes)
-    day_codes = petl.rename(day_codes, 'row', 'Day No')
-    period_codes = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Periods/{http://www.timetabling.com.au/TDV9}Period',
-                                {
-                                    'period_id': '{http://www.timetabling.com.au/TDV9}PeriodID',
-                                    'day_id': '{http://www.timetabling.com.au/TDV9}DayID',
-                                    'Period No': '{http://www.timetabling.com.au/TDV9}Number'
-                                })
-    period_codes = petl.join(period_codes, day_codes, key='day_id')
-    room_codes = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Rooms/{http://www.timetabling.com.au/TDV9}Room',
-                              {
-                                  'room_id': '{http://www.timetabling.com.au/TDV9}RoomID',
-                                  'Room Code': '{http://www.timetabling.com.au/TDV9}Code',
-                              })
-    teacher_source = petl.join(teacher_source, teacher_codes, key='teacher_id')
-    teacher_source = petl.join(teacher_source, class_codes, key='class_id')
-    teacher_source = petl.join(teacher_source, period_codes, key='period_id')
-    teacher_source = petl.join(teacher_source, room_codes, key='room_id')
-    teacher_source = petl.cut(teacher_source, 'Room Code', 'Teacher Code', 'Class Code', 'Period No', 'Day No', 'Room Code')
 
-    teacher_source = petl.join(teacher_source, ad_staff, lkey='Teacher Code', rkey='extensionAttribute2')
+    student_codes = petl.fromxml(ga_path(), '{http://www.timetabling.com.au/TDV9}Students/{http://www.timetabling.com.au/TDV9}Student',
+                                 {
+                                    'student_id': '{http://www.timetabling.com.au/TDV9}StudentID',
+                                    'student_code': '{http://www.timetabling.com.au/TDV9}Code',
+                                 })
 
-    teacher_source = petl.wrap(teacher_source)
-    teacher_source = (teacher_source
-                      .rename('Class Code', 'klass_id')
-                      .rename('employeeID', 'person_id')
-                      .addfield('kind', 'teacher')
-                      .addfieldusingcontext('id', lambda prv, cur, nxt: '{}_{}_{}'.format(cur.person_id, cur.klass_id, cur.kind))
-                      .cut('kind', 'person_id', 'klass_id', 'id'))
+    teacher_enrollments = (teacher_enrollments
+                           .unique()
+                           .join(teacher_codes, key='teacher_id')
+                           .join(staff_id_map, key='teacher_code')
+                           .join(class_codes, key='class_id')
+                           .cut('class_code', 'canvas_id')
+                           .rename('canvas_id', 'user_id')
+                           .addfield('role', 'teacher'))
 
-    enrollments = petl.cat(student_source, teacher_source)
-    enrollments = petl.transform.dedup.distinct(enrollments, key='id')
+    student_enrollments = (student_enrollments
+                           .unique()
+                           .join(student_codes, key='student_id')
+                           .cut('class_code', 'student_code')
+                           .rename('student_code', 'user_id')
+                           .addfield('role', 'student'))
 
-    enrollments = petl.wrap(enrollments)
+    enrollments = petl.cat(student_enrollments, teacher_enrollments)
 
     # remove ignored courses
     for i in config['ignored_course_patterns']:
-        enrollments = enrollments.searchcomplement('klass_id', i)
+        # TODO: Figure out a way to indicate how many or which class_id's were removed
+        enrollments = enrollments.searchcomplement('class_code', i)
 
     enrollments = (enrollments
-                   .rename('kind', 'role')
-                   .rename('person_id', 'user_id')
-                   .rename('klass_id', 'course_id')
+                   .rename('class_code', 'course_id')
                    .addfield('old_course_id', lambda rec: rec['course_id'])
                    .addfield('status', 'active')
                    .addfield('merged', lambda rec: merged_course_lookup(rec['course_id']))
@@ -282,8 +194,6 @@ def main():
     section_enrollments = enrollments
     enrollments = enrollments.cut('course_id', 'user_id', 'role', 'section_id', 'status')
 
-    enrollments.tocsv('csvs/enrollments.csv')
-
     # SECTIONS
     sections = section_enrollments.distinct('section_id')
     sections = (sections
@@ -291,6 +201,9 @@ def main():
                 .addfield('status', 'active')
                 .cut('section_id', 'course_id', 'name', 'status'))
 
+    people.tocsv('csvs/users.csv')
+    enrollments.tocsv('csvs/enrollments.csv')
+    courses.tocsv('csvs/courses.csv')
     sections.tocsv('csvs/sections.csv')
 
     # find merged and convert to sections
