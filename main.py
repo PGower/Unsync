@@ -4,6 +4,9 @@ import ldap3
 import re
 import csv
 import os
+import requests
+from canvas_api import CanvasAPI
+import arrow
 
 
 def ga_path():
@@ -205,15 +208,133 @@ def main():
     enrolled_users = enrollments.cut('user_id').addfield('enrolled', True).distinct(key='user_id')
     people = people.join(enrolled_users, key='user_id').select('enrolled', lambda v: v is True).cutout('enrolled')
 
+    # Add users from fake users
+    fake_people = config['fake_users']
+    for key, fake_person in fake_people.items():
+        if fake_person['expires'] is not None:
+            try:
+                expiry = arrow.get(fake_person['expires'], 'DD/MM/YY')
+            except arrow.ParserError:
+                continue
+            if not arrow.now() < expiry:
+                continue
+        p = petl.fromdicts([fake_person['data']], header=['user_id', 'login_id', 'first_name', 'last_name', 'full_name', 'email'])
+        p = p.addfield('status', 'active')
+        people = people.cat(p)
+
+    # Generate CSV Files
     people.tocsv('csvs/users.csv')
     enrollments.tocsv('csvs/enrollments.csv')
     courses.tocsv('csvs/courses.csv')
     sections.tocsv('csvs/sections.csv')
 
-    # find merged and convert to sections
-    # get all sections and turn into deduped sections 
-    # dump to csv in Canvas format
+
+def existing_data():
+    '''Get all existing data for the term and dump it out as CSV.'''
+    with open('config.yaml', 'r') as f:
+        config = yaml.load(f)
+
+    c = CanvasAPI(config['canvas_url'], config['api_key'])
+
+    terms = c.list_terms_for_account(1)
+    terms = dict([(t['sis_term_id'], t['id']) for t in terms['data']['enrollment_terms']])
+
+    try:
+        current_term_id = terms[config['term_sis_id']]
+    except KeyError:
+        raise Exception('Could not find an ID for the term_sis_id')
+
+    users = c.list_users_in_account(1)
+    users = petl.fromdicts(users['data'], header=['integration_id', 'login_id', 'sortable_name', 'name', 'short_name', 'sis_user_id', 'sis_import_id', 'sis_login_id', 'id'])
+    users = (users
+             .cut('sis_user_id', 'login_id', 'sortable_name', 'name')
+             .rename({'sis_user_id': 'user_id', 'name': 'full_name'})
+             .addfield('last_name', lambda rec: rec['sortable_name'][:rec['sortable_name'].find(',')] if ',' in rec['sortable_name'] else rec['sortable_name'])
+             .addfield('first_name', lambda rec: rec['sortable_name'][rec['sortable_name'].find(', ')+2:] if ',' in rec['sortable_name'] else rec['sortable_name'])
+             .cutout('sortable_name')
+             .addfield('status', 'active'))
+
+    email_map = petl.fromldap(ad_conn(),
+                              base_ou='OU=Automated Objects,DC=stmonicas,DC=qld,DC=edu,DC=au',
+                              query='(&(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(userPrincipalName=*stmonicas.qld.edu.au))',
+                              attributes=['mail', 'sAMAccountName'])
+    email_map = email_map.rename({'mail': 'email', 'sAMAccountName': 'login_id'})
+
+    users = (users
+             .join(email_map, key='login_id')
+             .cut('user_id', 'login_id', 'first_name', 'last_name', 'full_name', 'email', 'status'))
+
+    accounts = c.list_all_accounts()
+    accounts = petl.fromdicts(accounts, header=['integration_id', 'default_time_zone', 'name', 'default_storage_quota_mb', 'workflow_state', 'root_account_id', 'default_group_storage_quota_mb', 'sis_account_id', 'id', 'sis_import_id', 'parent_account_id', 'default_user_storage_quota_mb'])
+    accounts = (accounts
+                .cut('id', 'sis_account_id')
+                .rename('id', 'account_id'))
+
+    courses = c.list_courses_in_account(1, enrollment_term_id=current_term_id)
+    courses = petl.fromdicts(courses['data'], header=['calendar', 'id', 'hide_final_grades', 'default_view', 'is_public_to_auth_users', 'root_account_id', 'end_at', 'apply_assignment_group_weights', 'start_at', 'account_id', 'workflow_state', 'public_syllabus', 'grading_standard_id', 'storage_quota_mb', 'enrollment_term_id', 'public_syllabus_to_auth', 'is_public', 'integration_id', 'name', 'restrict_enrollments_to_course_dates', 'time_zone', 'sis_course_id', 'course_code'])
+    courses = (courses
+               .cut('name', 'course_code', 'sis_course_id', 'account_id', 'id')
+               .addfield('term_id', config['term_sis_id'])
+               .join(accounts, key='account_id')
+               .cutout('account_id')
+               .rename({'sis_course_id': 'course_id', 'sis_account_id': 'account_id', 'course_code': 'short_name', 'name': 'long_name'})
+               .addfield('status', 'active')
+               .cut('course_id', 'short_name', 'long_name', 'term_id', 'status', 'account_id', 'id'))
+
+    enrollments = []
+    for course_id in courses.dictlookup('id').keys():
+        e = c.list_enrollments_in_course(course_id)
+        enrollments.extend(e['data'])
+    enrollments = petl.fromdicts(enrollments, header=['associated_user_id', 'course_section_id', 'updated_at', 'grades', 'course_id', 'role_id', 'id', 'user_id', 'sis_user_id', 'root_account_id', 'end_at', 'sis_import_id', 'role', 'enrollment_state', 'type', 'course_integration_id', 'section_integration_id', 'start_at', 'html_url', 'user', 'limit_privileges_to_course_section', 'last_activity_at', 'sis_account_id', 'created_at', 'sis_course_id', 'sis_section_id', 'total_activity_time'])
+    sections_courses = enrollments.cut('course_id', 'sis_section_id').select('sis_section_id', lambda v: v is not None).distinct('course_id')  # filter down to just courses with sections
+    enrollments = (enrollments
+                   .cut('sis_course_id', 'sis_user_id', 'role', 'sis_section_id', 'enrollment_state')
+                   .rename({'sis_course_id': 'course_id', 'sis_user_id': 'user_id', 'sis_section_id': 'section_id', 'enrollment_state': 'status'})
+                   .convert('role', lambda v: {'StudentEnrollment': 'student', 'TeacherEnrollment': 'teacher'}.get(v, None)))
+
+    # Lookup Sections
+    sections = []
+    for course_id in sections_courses.dictlookup('course_id').keys():
+        s = c.list_sections_in_course(course_id)
+        sections.extend(s['data'])
+    sections = petl.fromdicts(sections, header=['integration_id', 'start_at', 'name', 'sis_import_id', 'end_at', 'sis_course_id', 'sis_section_id', 'course_id', 'nonxlist_course_id', 'id'])
+    sections = (sections
+                .cut('sis_section_id', 'sis_course_id', 'name')
+                .addfield('status', 'active')
+                .rename({'sis_section_id': 'section_id', 'sis_course_id': 'course_id'}))
+
+    users.tocsv('csvs/current/users.csv')
+
+    courses = courses.cut('course_id', 'short_name', 'long_name', 'term_id', 'status', 'account_id')
+    courses.tocsv('csvs/current/courses.csv')
+
+    enrollments.tocsv('csvs/current/enrollments.csv')
+
+    sections.tocsv('csvs/current/sections.csv')
+
+
+def upload_file():
+    '''Get all existing data for the term and dump it out as CSV.'''
+    with open('config.yaml', 'r') as f:
+        config = yaml.load(f)
+
+    c = CanvasAPI(config['canvas_url'], config['api_key'])
+
+    r = c.upload_sis_import_file(1, 'csvs/new.zip', diffing_data_set_identifier=config['sync_key'])
+
+    # import pdb;pdb.set_trace()
+
+
+def list_imports():
+    with open('config.yaml', 'r') as f:
+        config = yaml.load(f)
+
+    c = CanvasAPI(config['canvas_url'], config['api_key'])
+
+    r = c.list_sis_imports(1)
+
+    import pdb;pdb.set_trace()
 
 
 if __name__ == '__main__':
-    main()
+    list_imports()
