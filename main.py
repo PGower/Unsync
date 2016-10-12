@@ -7,10 +7,15 @@ import os
 import requests
 from canvas_api import CanvasAPI
 import arrow
+import click
+from jinja2 import Environment, FileSystemLoader
+
+
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
 def ga_path():
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source/timetable.ptf9')
+    return os.path.join(BASE_PATH, 'source/timetable.ptf9')
 
 
 def ad_conn():
@@ -23,7 +28,25 @@ def ad_conn():
     return conn
 
 
-def main():
+def jinja2_env():
+    return Environment(loader=FileSystemLoader(os.path.join(BASE_PATH, 'templates')), trim_blocks=True)
+
+
+def render(template, data={}):
+    env = jinja2_env()
+    template = env.get_template(template)
+    return template.render(**data)
+
+
+@click.group()
+def cli():
+    pass
+
+
+@click.command()
+@click.option('--config', default='./config.yaml', help='Read configuration from this file.')
+@click.option('--published-timetable', default='./source/timetable.ptf9', help='The published timetable ')
+def generate(config, published_timetable):
     # import config
     with open('config.yaml', 'r') as f:
         config = yaml.load(f)
@@ -227,9 +250,12 @@ def main():
     enrollments.tocsv('csvs/enrollments.csv')
     courses.tocsv('csvs/courses.csv')
     sections.tocsv('csvs/sections.csv')
+cli.add_command(generate)
 
 
-def existing_data():
+@click.command()
+@click.option('--config', default='./config.yaml', help='Read configuration from this file.')
+def existing_data(config):
     '''Get all existing data for the term and dump it out as CSV.'''
     with open('config.yaml', 'r') as f:
         config = yaml.load(f)
@@ -311,9 +337,15 @@ def existing_data():
     enrollments.tocsv('csvs/current/enrollments.csv')
 
     sections.tocsv('csvs/current/sections.csv')
+cli.add_command(existing_data)
+
+def _pretty_print_canvas_import(import_data):
+    pass
 
 
-def upload_file():
+@click.command()
+@click.option('--config', default='./config.yaml')
+def upload_file(config):
     '''Get all existing data for the term and dump it out as CSV.'''
     with open('config.yaml', 'r') as f:
         config = yaml.load(f)
@@ -323,9 +355,13 @@ def upload_file():
     r = c.upload_sis_import_file(1, 'csvs/new.zip', diffing_data_set_identifier=config['sync_key'])
 
     # import pdb;pdb.set_trace()
+cli.add_command(upload_file)
 
 
-def list_imports():
+@click.command()
+@click.option('--config', default='./config.yaml')
+@click.option('--show', default=2, help='Number of imports to show')
+def list_imports(config, show):
     with open('config.yaml', 'r') as f:
         config = yaml.load(f)
 
@@ -333,8 +369,14 @@ def list_imports():
 
     r = c.list_sis_imports(1)
 
-    import pdb;pdb.set_trace()
+    for count, import_data in zip(range(0, len(r['data']['sis_imports'])), r['data']['sis_imports']):
+        if count <= show:
+            print render('import_info.txt', {'import': import_data})
+        else:
+            break
+
+cli.add_command(list_imports)
 
 
 if __name__ == '__main__':
-    list_imports()
+    cli()

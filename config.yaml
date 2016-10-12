@@ -164,3 +164,30 @@ fake_users:
       first_name: Andy
       last_name: Winter
       email: awinter@gmail.com
+  kthompson:
+    expires: null
+    data:
+      user_id: '644388'
+      login_id: kthompson
+      first_name: Kathryn
+      last_name: Thompson
+      full_name: Kathryn Thompson
+      email: kthompson@stmonicas.qld.edu.au
+  mmattioli:
+    expires: null
+    data:
+      user_id: '110053'
+      login_id: mmattioli
+      first_name: Marzia
+      last_name: Mattioli
+      full_name: Marzia Mattioli
+      email: mmattioli@stmonicas.qld.edu.au
+  ngallo:
+    expires: null
+    data:
+      user_id: '111009'
+      login_id: ngallo
+      first_name: Naomi
+      last_name: Gallo
+      full_name: Naomi Gallo
+      email: ngallo@stmonicas.qld.edu.au
