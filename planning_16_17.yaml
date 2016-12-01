@@ -1,87 +1,98 @@
-sync_key: smc_canvas_unsync
-
+# Production
 api_key: 6523~nB6zVLfXrmVXG9cetYUAeLvByUZOmkvgbhnOnakxLpq4AFKQMLxrhtnQ0HGJvr2o
-
 canvas_url: https://stmonicas.instructure.com/
+
+# Testing
+# sync_key: smc_canvas_unsync
+# api_key: 6523~RGAIWPnoeG7FYKZ3IEYc1xHIDTE3ad6mcGVw0HniWeikawDSdLj2mARjyKxpMUlZ
+# canvas_url: https://stmonicas.test.instructure.com/
+
+
+
 
 canvas_account_id: 1
 
-term_sis_id: t4_2016
+# This needs to change if we change terms etc or it will delete all old courses
+# sync_key: smc_canvas_unsync
+# term_sis_id: t4_2016
+
+sync_key: smc_planning_16_17
+term_sis_id: PLANNING_16_17
 
 merged_courses:
-  11LST_COMBINED_T4:
+  11LST_COMBINED_PLAN1617:
     - 11LST3A
     - 11LST4B
-  11ACC_COMBINED_T4:
+  11ACC_COMBINED_PLAN1617:
     - 11ACC5A
     - 11ACC7B
-  12SIS310C_COMBINED_T4:
+  12SIS310C_COMBINED_PLAN1617:
     - 12SIS310C33A
     - 12SIS310C37B
-  10HPE_COMBINED_T4:
+  10HPE_COMBINED_PLAN1617:
     - 10HPEC2B
     - 10HPED
     - 10HPEE
-  12SCI21_COMBINED_T4:
+  12SCI21_COMBINED_PLAN1617:
     - 12SCI216A
     - 12SCI217B
-  07SCI_COMBINED_T4:
+  07SCI_COMBINED_PLAN1617:
     - 07SCIA
     - 07SCIB
     - 07SCIC
     - 07SCID
-  11CHE_COMBINED_T4:
+  11CHE_COMBINED_PLAN1617:
     - 11CHE4A
     - 11CHE7B
-  09HPE_COMBINED_T4:
+  09HPE_COMBINED_PLAN1617:
     - 09HPEC
     - 09HPED
-  11SCI21_COMBINED_T4:
+  11SCI21_COMBINED_PLAN1617:
     - 11SCI216A
     - 11SCI217B
-  12CHE_COMBINED_T4:
+  12CHE_COMBINED_PLAN1617:
     - 12CHE4A
     - 12CHE7B
-  08HUM_COMBINED_T4:
+  08HUM_COMBINED_PLAN1617:
     - 08HUMA
     - 08HUMB
     - 08HUMC
     - 08HUMD
     - 08HUME
-  12BIO_COMBINED_T4:
+  12BIO_COMBINED_PLAN1617:
     - 12BIO3A
     - 12BIO6B
-  11PE_COMBINED_T4:
+  11PE_COMBINED_PLAN1617:
     - 11PE3A
     - 11PE5B
-  12ACC_COMBINED_T4:
+  12ACC_COMBINED_PLAN1617:
     - 12ACC3A
     - 12ACC5B
-  08HPE_COMBINED_T4:
+  08HPE_COMBINED_PLAN1617:
     - 08HPEB
     - 08HPED
-  12MAA_COMBINED_T4:
+  12MAA_COMBINED_PLAN1617:
     - 12MAA2A
     - 12MAA2B
-  12LST_COMBINED_T4:
+  12LST_COMBINED_PLAN1617:
     - 12LST3A
     - 12LST4B
-  08SCI_COMBINED_T4:
+  08SCI_COMBINED_PLAN1617:
     - 08SCIA
     - 08SCIB
     - 08SCIC
     - 08SCID
     - 08SCIE
-  10SEL_COMBINED_T4:
+  10SEL_COMBINED_PLAN1617:
     - GP-10SELA
     - GP-10SELB
     - GP-10SELC
     - GP-10SELD
-  11BIO_COMBINED_T4:
+  11BIO_COMBINED_PLAN1617:
     - 11BIO3A
     - 11BIO5A
     - 11BIO6B
-  09SCI_COMBINED_T4:
+  09SCI_COMBINED_PLAN1617:
     - 09SCIA
     - 09SCIB
     - 09SCIC
@@ -102,41 +113,42 @@ ignored_course_patterns:
   - '^[0-9]{2}(STU|LAN).*$'
 
 account_course_patterns:
-  junior_maths: '^(07|08|09|10)MAT[A-Z].*'
-  maths_a: '^(11|12)MAA.*'
-  maths_b: '^(11|12)MAB.*'
-  maths_c: '^(11|12)MAC.*'
-  english: '^[0-9]{2}(ENG|LIT).*'
-  science: '^[0-9]{2}(SCI|ISCI).*$'
-  biology: '^[0-9]{2}BIO.*'
-  chemistry: '^[0-9]{2}CHE.*'
-  physics: '^[0-9]{2}PHY.*'
-  religion: '^[0-9]{2}RE[A-Z]{1}.*$'
-  sor: '^[0-9]{2}SOR.*$'
-  visual_arts: '^[0-9]{2}(CRA|VAR).*$'
-  dance: '^[0-9]{2}DAN.*$'
-  drama: '^[0-9]{2}DRA.*$'
-  music: '^[0-9]{2}MUS.*$'
-  ict: '^[0-9]{2}(ICT|ITS).*$'
-  textiles: '^[0-9]{2}TEX.*$'
-  foodtech: '^[0-9]{2}FTEC.*$'
-  homeec: '^[0-9]{2}HEC.*$'
-  italian: '^[0-9]{2}ITL.*$'
-  japanese: '^[0-9]{2}JAP.*$'
-  chinese: '^[0-9]{2}CHI.*$'
-  humanities: '^[0-9]{2}HUM.*$'
-  legal: '^[0-9]{2}LS[A-Z]{1}.*$'
-  business: '^[0-9]{2}BUS.*$'
-  geography: '^[0-9]{2}GEO.*$'
-  accounting: '^[0-9]{2}ACC.*$'
-  rae: '^[0-9]{2}RAE.*$'
-  ecom: '^[0-9]{2}ECOM.*$'
-  history: '^[0-9]{2}(HIS|MHI).*$'
-  maths: '^[0-9]{2}(NUM|PVM).*$'
-  hpe: '^[0-9]{2}(HPE|SIS).*$'
-  pe: '^[0-9]{2}PE.*$'
-  designtech: '^[0-9]{2}(DT|DTF|ITD|IDT).*$'
-  sel: '^(GP-[0-9]{2}SEL.*|[0-9]{2}PD.*)'
+  PLANNINGACC_16_17: '.*'
+  # junior_maths: '^(07|08|09|10)MAT[A-Z].*'
+  # maths_a: '^(11|12)MAA.*'
+  # maths_b: '^(11|12)MAB.*'
+  # maths_c: '^(11|12)MAC.*'
+  # english: '^[0-9]{2}(ENG|LIT).*'
+  # science: '^[0-9]{2}(SCI|ISCI).*$'
+  # biology: '^[0-9]{2}BIO.*'
+  # chemistry: '^[0-9]{2}CHE.*'
+  # physics: '^[0-9]{2}PHY.*'
+  # religion: '^[0-9]{2}RE[A-Z]{1}.*$'
+  # sor: '^[0-9]{2}SOR.*$'
+  # visual_arts: '^[0-9]{2}(CRA|VAR).*$'
+  # dance: '^[0-9]{2}DAN.*$'
+  # drama: '^[0-9]{2}DRA.*$'
+  # music: '^[0-9]{2}MUS.*$'
+  # ict: '^[0-9]{2}(ICT|ITS).*$'
+  # textiles: '^[0-9]{2}TEX.*$'
+  # foodtech: '^[0-9]{2}FTEC.*$'
+  # homeec: '^[0-9]{2}HEC.*$'
+  # italian: '^[0-9]{2}ITL.*$'
+  # japanese: '^[0-9]{2}JAP.*$'
+  # chinese: '^[0-9]{2}CHI.*$'
+  # humanities: '^[0-9]{2}HUM.*$'
+  # legal: '^[0-9]{2}LS[A-Z]{1}.*$'
+  # business: '^[0-9]{2}BUS.*$'
+  # geography: '^[0-9]{2}GEO.*$'
+  # accounting: '^[0-9]{2}ACC.*$'
+  # rae: '^[0-9]{2}RAE.*$'
+  # ecom: '^[0-9]{2}ECOM.*$'
+  # history: '^[0-9]{2}(HIS|MHI).*$'
+  # maths: '^[0-9]{2}(NUM|PVM).*$'
+  # hpe: '^[0-9]{2}(HPE|SIS).*$'
+  # pe: '^[0-9]{2}PE.*$'
+  # designtech: '^[0-9]{2}(DT|DTF|ITD|IDT).*$'
+  # sel: '^(GP-[0-9]{2}SEL.*|[0-9]{2}PD.*)'
 
 fake_users:
   pgower:  # Each fake user is a dictionary, the key is the username (its not really important, just needs to be unique)
