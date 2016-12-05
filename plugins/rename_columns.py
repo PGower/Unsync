@@ -1,6 +1,5 @@
 """Utility command to rename columns in a local data table."""
 import click
-import petl
 
 from .common import pass_data
 
@@ -10,6 +9,7 @@ from .common import pass_data
 @click.option('--source', '-s', required=True, help='The local data table to use for renaming.')
 @pass_data
 def rename_columns(data, rename, source):
+    """Rename columns from the source data table."""
     d = data.get(source)
     for pair in rename:
         if pair[0] not in d.header():
