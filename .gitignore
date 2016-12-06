@@ -2,3 +2,4 @@ env
 csvs/*.csv
 csvs/*.zip
 source/*.ptf9
+*.pyc
