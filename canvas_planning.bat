@@ -1,6 +1,6 @@
 ECHO off
 python main.py ptf9_course_import -i source\timetable_planning.ptf9 -d ptf9_courses ^
-               regex_filter -s ptf9_courses -m exclude -f course_id "^[BGLR]{1}[1-9]{1}$" ^
+               regex_filter -s ptf9_courses -m exclude -f Code "^[BGLR]{1}[1-9]{1}$" ^
                                                   -f Code "^GP-[0-9]{2}ACT.*$" ^
                                                   -f Code "^ASM-.*$" ^
                                                   -f Code "^.+QCS.+$" ^
