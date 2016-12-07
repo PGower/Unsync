@@ -1,9 +1,10 @@
 import click
 import os
 import importlib
-from plugins.common import UnsyncData
+import imp
+from lib.common import UnsyncData
 
-PLUGIN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plugins')
+COMMAND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'commands')
 
 
 # TODO: Figure out how to use the default_map context setting to read variables out of a config file or something to that effect.
@@ -15,37 +16,45 @@ class UnsyncCommands(click.MultiCommand):
         kwargs['context_settings'] = {'obj': UnsyncData()}
         super(UnsyncCommands, self).__init__(*args, **kwargs)
 
+    def _recursive_path_walk(self, path):
+        r = []
+        for name in os.listdir(path):
+            if os.path.isdir(os.path.join(path, name)):
+                sub_r = self._recursive_path_walk(os.path.join(path, name))
+                r += ['{}_{}'.format(name, i) for i in sub_r]
+            else:
+                if name.endswith('.py'):
+                    filename = name
+                    name = name[:-3]
+                    try:
+                        a = imp.load_source(name, os.path.join(path, filename))
+                    except Exception as e:
+                        click.secho('Unable to import plugin file at {} due to error: {}'.format(os.path.join(path, filename), str(e)), err=True, fg='red')
+                        continue
+                    if hasattr(a, 'command'):
+                        r.append(name)
+        return r
+
     def list_commands(self, ctx):
         """List available commands by trying to import files from the plugins directory."""
-        rv = []
-        for filename in os.listdir(PLUGIN_DIR):
-            if filename.endswith('.py'):
-                try:
-                    # attempt to import module
-                    a = importlib.import_module('plugins.{}'.format(filename[:-3]))
-                except Exception as e:
-                    # I know this is bad but in this case I think its justified. I dont want any weirdness in the plugin files stopping this process.
-                    click.secho('Could not parse plugin file {} because: {}'.format(filename, str(e)), err=True, fg='red')
-                    continue
-                if hasattr(a, 'command'):
-                    rv += (filename[:-3],)
-                else:
-                    continue
-        rv.sort()
-        return rv
+        commands = []
+        # Walk through the command dir enumerating files and subfolders. Subfolder names turn into command prefixes.
+        commands = self._recursive_path_walk(COMMAND_DIR)
+        return commands
 
     def get_command(self, ctx, name):
         """Retrieve and return the command to run."""
-        try:
-            a = importlib.import_module('plugins.{}'.format(name))
-            return getattr(a, 'command')
-        except NameError:
-            pass
-        except ImportError:
-            pass
+        for i in range(name.count('_') + 1):
+            try:
+                a = importlib.import_module('commands.{}'.format(name))
+                return getattr(a, 'command')
+            except NameError:
+                pass
+            except ImportError:
+                pass
+            name = name.replace('_', '.', 1)
 
-
-cli = UnsyncCommands(chain=True, help='Canvas Unsync Commands. Loaded automatically from the plugins folder.', context_settings={'obj': UnsyncData()})
+cli = UnsyncCommands(chain=True, help='Canvas Unsync Commands')
 
 
 if __name__ == '__main__':
