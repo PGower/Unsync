@@ -49,8 +49,13 @@ class UnsyncCommands(click.MultiCommand):
                 a = importlib.import_module('commands.{}'.format(name))
                 return getattr(a, 'command')
             except NameError:
+                # Something went wrong with the import
                 pass
             except ImportError:
+                # Something went wrong with the import
+                pass
+            except AttributeError:
+                # There was a file but chances are it didnt have a command attribute
                 pass
             name = name.replace('_', '.', 1)
 

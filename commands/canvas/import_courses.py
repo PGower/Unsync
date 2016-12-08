@@ -13,7 +13,7 @@ from lib.canvas_api import CanvasAPI
 @click.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
 @pass_data
 def canvas_import_courses(data, instance, api_key, account_id, term_id, destination):
-    """Import Canvas course and store them in a local data table."""
+    """Import Canvas courses via the REST API and store it in the destination data table."""
     client = CanvasAPI(instance, api_key)
     if term_id:
         r = client.list_courses_in_account(account_id, enrollment_term_id=term_id)

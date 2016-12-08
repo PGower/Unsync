@@ -13,7 +13,7 @@ from lib.canvas_api import CanvasAPI
 @click.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
 @pass_data
 def canvas_import_account_users(data, instance, api_key, account_id, destination):
-    """Import Canvas course and store them in a local data table."""
+    """Import User information from the Canvas instance via the REST API and store it in the destination table."""
     client = CanvasAPI(instance, api_key)
     r = client.list_users_in_account(account_id)
     if r['response'].status_code == 200:

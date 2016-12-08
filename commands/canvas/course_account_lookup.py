@@ -28,7 +28,6 @@ def account_lookup(data, courses, course_id_field, account_id_field, account_dat
                 return v
         return missing_account
 
-
     courses_table = courses_table.addfield(account_id_field, account_lookup_func)
     data.set(courses, courses_table)
 
