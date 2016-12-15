@@ -1,6 +1,6 @@
 """PETL Head Command."""
 import click
-from lib.common import pass_data
+from lib.unsync_data import pass_data
 
 
 @click.command()

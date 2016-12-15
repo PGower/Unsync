@@ -1,6 +1,6 @@
 import click
 import petl
-from lib.common import pass_data
+from lib.unsync_data import pass_data
 
 
 @click.command()
@@ -11,6 +11,5 @@ def stats(data, source):
     d = data.get(source)
     click.secho('Row Count: {}'.format(d.nrows()), fg='green')
     click.secho('Column Count: {}'.format(len(d[0])), fg='green')
-
 
 command = stats

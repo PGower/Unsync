@@ -2,7 +2,8 @@
 from __future__ import absolute_import
 import click
 
-from lib.common import pass_data, extract_api_data
+from lib.unsync_data import pass_data
+from lib.common import extract_api_data
 from lib.canvas_api import CanvasAPI
 
 

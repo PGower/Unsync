@@ -1,4 +1,4 @@
-"""PETL Rename Command."""
+"""PETL Update Command."""
 import click
 import petl
 from lib.unsync_data import pass_data
@@ -7,14 +7,16 @@ from lib.unsync_data import pass_data
 @click.command()
 @click.option('--source', '-s', required=True, type=unicode, help='Name of the source data table/s.')
 @click.option('--destination', '-d', type=unicode, help='Name of the destination data table.')
-@click.option('--transform', '-t', multiple=True, type=click.Tuple([unicode, unicode]), help='Header transforms, FROM, TO.')
+@click.option('--field', '-f', required=True, help='The field name to modify')
+@click.option('--value', '-v', required=True, help='the value to fill the field with.')
 @pass_data
-def petl_rename(data, source, destination, transform):
-    """Rename columns based on Transform parameters."""
+def petl_update(data, source, destination, field, value):
+    """Update a given column with a static value."""
     if not destination:
         destination = source
     s = data.get(source)
-    s = s.rename(dict(transform))
+    s = s.update(field, value)
     data.set(destination, s)
 
-command = petl_rename
+
+command = petl_update

@@ -2,7 +2,7 @@
 import click
 import petl
 
-from lib.common import KINDS, pass_data, generic_import_actions
+from lib.unsync_data import pass_data
 
 
 @click.command()

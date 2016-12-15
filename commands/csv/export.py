@@ -2,7 +2,7 @@
 import click
 import petl
 
-from lib.common import KIND_NAMES, pass_data
+from lib.unsync_data import pass_data
 
 
 @click.command()
@@ -14,6 +14,7 @@ from lib.common import KIND_NAMES, pass_data
 @click.option('--append/--no-append', default=False, help='When set the output file will be opened and rows will be appended to the existing data. When set --write-header is always False.')
 @pass_data
 def csv_export(data, output_file, source, csv_arg, errors, write_header, append):
+    """Export the specified table of data to a csv file."""
     existing_data = data.get(source)
     if append is True:
         petl.appendcsv(existing_data, output_file, errors=errors, **dict(csv_arg))

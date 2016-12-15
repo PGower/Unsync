@@ -1,7 +1,7 @@
 """Canvas specific command to assign sis_account_ids to courses based on their course_id."""
 
 import click
-from lib.common import pass_data
+from lib.unsync_data import pass_data
 import re
 
 

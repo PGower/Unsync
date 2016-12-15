@@ -2,9 +2,14 @@ import click
 import os
 import importlib
 import imp
-from lib.common import UnsyncData
+from lib import UnsyncData
 
 COMMAND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'commands')
+
+# Code to make ipython launch whenever an exception occurs  TODO: add this into the unsync commands
+# import sys
+# from IPython.core import ultratb
+# sys.excepthook = ultratb.FormattedTB(mode='Verbose', color_scheme='Linux', call_pdb=1)
 
 
 # TODO: Figure out how to use the default_map context setting to read variables out of a config file or something to that effect.

@@ -1,7 +1,8 @@
 """Import courses from the specified Canvas instance into a local data table."""
 import click
 
-from lib.common import pass_data, extract_api_data
+from lib.unsync_data import pass_data
+from lib.common import extract_api_data
 from lib.canvas_api import CanvasAPI
 
 

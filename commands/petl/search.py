@@ -1,7 +1,7 @@
 """Utility command to filter table rows based on the value of a column and a provided regex."""
 import click
 
-from lib.common import pass_data
+from lib.unsync_data import pass_data
 
 
 @click.command()

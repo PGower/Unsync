@@ -1,7 +1,7 @@
 """Canvas specific command to merge specified courses together."""
 
 import click
-from lib.common import pass_data
+from lib.unsync_data import pass_data
 
 
 @click.command()
@@ -13,7 +13,7 @@ from lib.common import pass_data
 @click.option('--removed-courses-destination', default='removed_merged_course_data', help='The destination table for any courses that were removed as part of the merge.')
 @pass_data
 def merge_courses(data, courses, course_id_field, course_name_field, merge_data, save_removed_courses, removed_courses_destination):
-    """Merge courses acording to pairs in the merge table."""
+    """Merge courses acording to pairs in the merge table. If save-removed-courses is set then save the removed courses to a table named removed-courses-destination"""
     merge_data = data.get(merge_data)
     courses_table = data.get(courses)
 

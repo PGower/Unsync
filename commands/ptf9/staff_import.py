@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import click
 import petl
 
-from lib.common import pass_data
+from lib.unsync_data import pass_data
 
 
 @click.command()
