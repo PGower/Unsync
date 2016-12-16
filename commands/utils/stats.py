@@ -1,9 +1,10 @@
 import click
 import petl
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--source', '-s', required=True, help='Source table to print data from.')
 @pass_data
 def stats(data, source):

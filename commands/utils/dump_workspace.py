@@ -3,9 +3,10 @@ import click
 import pickle
 
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--output-file', '-o', type=click.Path(dir_okay=False, readable=True, resolve_path=True), help='File that the pickle representation will be written to.')
 @pass_data
 def dump_workspace(data, output_file):

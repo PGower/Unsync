@@ -2,9 +2,10 @@
 import click
 
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--source', '-s', required=True, help='The source data table.')
 @click.option('--filter', '-f', type=click.Tuple([unicode, unicode]), multiple=True, required=True, help='A tuple of values, first is the column to filter on and second is the regex to use.')
 @click.option('--destination', '-d', help='The destination data table for matched rows. If blank will overwrite the source table.')

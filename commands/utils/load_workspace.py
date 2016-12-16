@@ -3,9 +3,10 @@ import click
 import pickle
 
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--input-file', '-i', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Workspace file that will be read.')
 @click.option('--prefix', default='', help='Prefix to apply to table names when they are loaded from the workspace file.')
 @pass_data

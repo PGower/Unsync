@@ -3,9 +3,10 @@
 import click
 import petl
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--strategy', '-st', required=True, default='join', type=click.Choice(['join', 'leftjoin', 'lookupjoin', 'rightjoin', 'outerjoin', 'antijoin', 'hashjoin', 'hashleftjoin', 'hashlookupjoin', 'hashrightjoin', 'hashantijoin']), help='See http://petl.readthedocs.io/en/latest/transform.html#joins')
 @click.option('--source-left', '-sl', required=True, help='The "left" table in the join.')
 @click.option('--source-right', '-sr', required=True, help='The "right table in the join.')

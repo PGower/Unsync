@@ -2,10 +2,11 @@
 
 import click
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 import re
 
 
-@click.command()
+@unsync.command()
 @click.option('--courses', required=True, type=unicode, help='The source courses table containing courses to be merged.')
 @click.option('--course-id-field', required=True, type=unicode, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
 @click.option('--account-id-field', required=True, type=unicode, default='account_id', help='The field name for the account id. Defaults to Canvas standard account_id.')

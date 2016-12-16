@@ -1,4 +1,4 @@
-term_id,name,status,start,end
+term_id,name,status,start_date,end_date
 TERM1_2017,Term 1 2017,active,2017-01-23T00:00:00,2017-03-31T00:00:00
 TERM2_2017,Term 2 2017,active,2017-04-17T00:00:00,2017-06-23T00:00:00
 TERM3_2017,Term 3 2017,active,2017-07-10T00:00:00,2017-09-15T00:00:00

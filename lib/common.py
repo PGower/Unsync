@@ -48,12 +48,18 @@ def extract_api_data(response, header, empty_value=None):
 
 def select_term_id(target_date, kind, terms, date_format='YYYY-MM-DDTHH:mm:ss'):
     """Return the sis_term_id from the passed terms table where the kind matches the term and the target_date falls within the target date."""
+    ctx = click.get_current_context()
+
     if issubclass(type(target_date), basestring):
         target_date = arrow.get(target_date, date_format)
 
-    term_lookup = terms.cut('term_id', 'start', 'end')
-    term_lookup = term_lookup.listoftuples()[1:]
-    term_lookup = dict([(i[0], {'start': arrow.get(i[1], date_format), 'end': arrow.get(i[2], date_format)}) for i in term_lookup])
+    try:
+        term_lookup = ctx.obj.values['term_lookup']
+    except KeyError:
+        term_lookup = terms.cut('term_id', 'start_date', 'end_date')
+        term_lookup = term_lookup.listoftuples()[1:]
+        term_lookup = dict([(i[0], {'start': arrow.get(i[1], date_format), 'end': arrow.get(i[2], date_format)}) for i in term_lookup])
+        ctx.obj.values['term_lookup'] = term_lookup
 
     for term_id, span in term_lookup.items():
         if kind.lower() in term_id.lower():

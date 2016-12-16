@@ -9,9 +9,10 @@ Lifecycle is assigned in 3 steps.
 import click
 import re
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--courses', '-c', required=True, type=unicode, help='The table containing courses data.')
 @click.option('--course-id-field', required=True, type=unicode, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
 @click.option('--default-lifecycle-value', default=u'TERM', type=click.Choice(['TERM', 'SEM', 'ROT', 'YEAR']), help='The default lifecycle to assign all courses. If not changed in the lifecycle-defaults table or the lifecycle-mappings table this will stick.')

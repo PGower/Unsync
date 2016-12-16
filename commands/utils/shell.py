@@ -1,10 +1,11 @@
 """Launch an iPython shell with access to the current context."""
 
-import click
 from IPython import embed
+from lib.unsync_commands import unsync
+import click
 
 
-@click.command()
+@unsync.command()
 @click.pass_context
 def shell_now(ctx):
     """Launch an IPython shell with access to the current context."""

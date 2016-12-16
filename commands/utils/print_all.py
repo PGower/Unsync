@@ -1,9 +1,10 @@
 import click
 import petl
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--offset', '-o', default=0, type=int, help='Offset to begin displaying rows')
 @click.option('--lines', '-n', default=5, type=int, help='How many lines to show from each table')
 @click.option('--style', type=click.Choice(['grid', 'simple', 'minimal']), default='grid')

@@ -3,11 +3,12 @@
 import click
 import petl
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 from lib.common import select_term_id
 import arrow
 
 
-@click.command()
+@unsync.command()
 @click.option('--enrollments', required=True, help='Enrollments in Canvas CSV format.')
 @click.option('--courses', required=True, help='Courses in Canvas CSV format. Expects the three additional fields lifecycle_type, enrollment_type and old_course_id')
 @click.option('--merged-courses', required=True, help='A table containing a mapping of course_ids to merged_course_ids')

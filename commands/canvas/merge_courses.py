@@ -2,9 +2,10 @@
 
 import click
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--courses', required=True, type=unicode, help='The source courses table containing courses to be merged.')
 @click.option('--course-id-field', required=True, type=unicode, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
 @click.option('--course-name-field', required=True, type=unicode, default='long_name', help='The field name for the course name. Defaults to Canvas standard long_name.')
@@ -25,8 +26,11 @@ def merge_courses(data, courses, course_id_field, course_name_field, merge_data,
     source_course_ids_to_remove = source_courses_to_remove.columns()[course_id_field]
     courses_table = courses_table.select(course_id_field, lambda v: v not in source_course_ids_to_remove)
 
+    import IPython;IPython.embed()
+
     # Save the removed courses to a seperate table for later use
     if save_removed_courses:
+        source_courses_to_remove = source_courses_to_remove.lookupjoin(merge_data, lkey='course_id', rkey='source_id').cut('course_id', 'merged_id').rename('merged_id', 'merged_course_id')
         data.set(removed_courses_destination, source_courses_to_remove)
 
     # Work out which merge courses I need to create, this will be any merge course that has a source course to be removed

@@ -1,6 +1,7 @@
 import click
 import petl
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
 # def validate_show(ctx, param, value):
@@ -24,7 +25,7 @@ from lib.unsync_data import pass_data
 #             return value
 
 
-@click.command()
+@unsync.command()
 @click.option('--offset', '-o', default=0, type=int, help='Offset to begin displaying rows')
 @click.option('--lines', '-n', default=50, type=int, help='How many lines to show from the table')
 @click.option('--source', '-s', required=True, help='Source table to print data from.')

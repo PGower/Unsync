@@ -4,9 +4,10 @@ import click
 import petl
 
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--input-file', '-i', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Timetabler PTF9 file to extract data from.')
 @click.option('--destination', '-d', default='enrollments', help='The destination table that these enrollments will be stored in. Defaults to enrollments.')
 @pass_data

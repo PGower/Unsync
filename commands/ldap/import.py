@@ -3,9 +3,10 @@ import petl
 import ldap3
 
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--server', '-s', required=True, help='LDAP Server Address.')
 @click.option('--port', '-p', default=389, help='LDAP Server Port (389 or 636 for SSL).')
 @click.option('--use-ssl/--no-use-ssl', default=False, help='Should we use SSL for the connection.')

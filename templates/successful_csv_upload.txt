@@ -1,0 +1,10 @@
+{u'ended_at': None, u'diffed_against_import_id': None, u'workflow_state': u'created', u'batch_mode': None, u'created_at': u'2016-12-15T08:54:49Z', u'batch_mode_term_id': None, u'clear_sis_stickiness': None, u'updated_at': u'2016-12-15T08:54:49Z', u'override_sis_stickiness': None, u'add_sis_stickiness': None, u'diffing_data_set_identifier': u'2017_testing', u'progress': 0, u'started_at': None, u'data': {u'import_type': u'instructure_csv'}, u'id': 197}
+
+Data Succesfully Uploaded - Upload ID: {{id}}
+State: {{workflow_state}}   Progress: {{progress}}%
+Updated At: {{updated_at}}
+Started: {{started_at}}     Finished: {{ended_at}}
+===============   Options   ======================
+Override SIS Stickiness: {{override_sis_stickiness}}
+Add SIS Stickiness: {{add_sis_stickiness}}
+Clear SIS Stickiness: {{clear_sis_stickiness}}

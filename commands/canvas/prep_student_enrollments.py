@@ -2,9 +2,10 @@
 import click
 import petl
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--ptf9-enrollments', required=True, help='Table where student ptf9 enrollment data is stored.')
 @click.option('--ptf9-students', required=True, help='Table where student ptf9 data is stored.')
 @click.option('--destination', '-d', required=True, help='Table to store modified enrollment data in.')

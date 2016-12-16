@@ -3,11 +3,12 @@ from __future__ import absolute_import
 import click
 
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 from lib.common import extract_api_data
 from lib.canvas_api import CanvasAPI
 
 
-@click.command()
+@unsync.command()
 @click.option('--instance', required=True, help='Canvas instance to use. Usually something like <schoolname>.instructure.com.')
 @click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
 @click.option('--account-id', type=int, default=1, help='The Canvas Account to search for courses in.')

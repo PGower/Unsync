@@ -2,9 +2,10 @@
 import click
 import petl
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--ptf9-enrollments', required=True, help='Table where staff ptf9 enrollment data is stored.')
 @click.option('--ptf9-staff', required=True, help='Table where staff ptf9 data is stored.')
 @click.option('--ptf9-courses', required=True, help='Table where ptf9 courses data is stored. This expects raw course data, not processed.')

@@ -1,9 +1,10 @@
 """PETL Tail Command."""
 import click
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--source', '-s', required=True, help='Name of the source data table.')
 @click.option('--destination', '-d', help='Name of the destination data table. Will default to the source table if not specified.')
 @click.option('-n', type=int, required=True, help='Number of rows to select.')

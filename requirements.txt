@@ -9,3 +9,4 @@ requests==2.11.1
 six==1.10.0
 colorama
 ipython
+petname

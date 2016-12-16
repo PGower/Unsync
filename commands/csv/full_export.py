@@ -4,9 +4,10 @@ import petl
 import os
 
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--output-dir', '-o', type=click.Path(dir_okay=True, file_okay=False, readable=True, resolve_path=True), help='CSV file that data will be read from.')
 @click.option('--csv-arg', multiple=True, type=click.Tuple([unicode, unicode]), help='Arguments that will be passed to petl\'s CSV parsing engine.')
 @click.option('--errors', default='strict', help='PETL option for CSV errors.')

@@ -1,9 +1,10 @@
 """PETL Cutout Command."""
 import click
 from lib.unsync_data import pass_data
+from lib.unsync_commands import unsync
 
 
-@click.command()
+@unsync.command()
 @click.option('--source', '-s', required=True, help='Name of the source data table.')
 @click.option('--destination', '-d', help='Name of the destination data table. Will default to the source table if not specified.')
 @click.option('--field', multiple=True, type=unicode, help='Field names to cut from the source table.')

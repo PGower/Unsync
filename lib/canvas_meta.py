@@ -58,7 +58,7 @@ SIS_TYPES = {
             'status': ['available', 'deleted']
         }
     },
-    'group_membership': {
+    'group_memberships': {
         'columns': ['group_id', 'user_id', 'status'],
         'required_columns': ['group_id', 'user_id', 'status'],
         'filename': 'group_membership',
@@ -66,7 +66,7 @@ SIS_TYPES = {
             'status': ['accepted', 'deleted']
         }
     },
-    'xlist': {
+    'xlists': {
         'columns': ['xlist_course_id', 'section_id', 'status'],
         'required_columns': ['xlist_course_id', 'section_id', 'status'],
         'filename': 'xlist',
