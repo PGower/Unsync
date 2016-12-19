@@ -59,11 +59,6 @@ class UnsyncData(object):
         t = t.cat(petl.wrap(table))
         self.set(name, t)
 
-    def validate_header(self, name, header, allow_subset=False):
-        """Validate the the header of the table matches the header provided. If allow_subset is True then check that the provider header is a subset of the table header not exactly equal."""
-        if allow_subset:
-
-
     def filename(self, name, extension):
         """Come up with a filename for a given table name."""
         if name in SIS_TYPE_NAMES:
