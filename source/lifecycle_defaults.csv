@@ -1,3 +1,0 @@
-regex,value
-"^(07|08)(MUS|VAR|DT|FTE|DRA|DAN).*",ROT
-"^(11|12).*",SEM
