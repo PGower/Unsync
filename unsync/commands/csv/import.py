@@ -1,13 +1,12 @@
 """CSV Import and Export functions for CanvasUnsync."""
 import click
 import petl
-from lib import Unsync
 
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
 
 
-@Unsync.command()
+@unsync.command()
 @click.option('--input-file', '-i', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='CSV file that data will be read from.')
 @click.option('--csv-arg', multiple=True, type=click.Tuple([unicode, unicode]), help='Arguments that will be passed to petl\'s CSV parsing engine.')
 @click.option('--errors', default='strict', help='PETL option for CSV errors.')
