@@ -286,6 +286,9 @@ class CanvasAPI(object):
             params['created_since'] = created_since
         return self.generic_get('/api/v1/accounts/{}/sis_imports'.format(account_id), params=params)
 
+    def get_sis_import_status(self, account_id, sis_import_id):
+        return self.generic_get('/api/v1/accounts/{}/sis_imports/{}'.format(account_id, sis_import_id))
+
 
 
 class CanvasAPIError(Exception):

@@ -6,6 +6,7 @@ from unsync.lib.unsync_commands import unsync
 
 
 @unsync.command()
+@click.option('--name', type=unicode, help='A name for this validation step. Will be printed in the output. Cosmetic only.')
 @click.option('--source', '-s', required=True, type=unicode, help='Name of the source data table/s.')
 @click.option('--header', '-h', multiple=True, type=unicode, help='The set of required headers.')
 @click.option('--test', '-t', multiple=True, type=click.Tuple([unicode, unicode, unicode]), help='Apply a test to a row/value and pass if no Exception is raised. \
@@ -19,9 +20,14 @@ from unsync.lib.unsync_commands import unsync
                                                                                                        the special name __row__ to test the entire row and the \
                                                                                                        third is a string which will be evaluated with eval()')
 @pass_data
-def petl_validate(data, source, header, test, assertion):
+def petl_validate(data, name, source, header, test, assertion):
     """Validate that a table meets the required constraints."""
     s = data.get(source)
+
+    if name:
+        name = name + ' '
+    else:
+        name = ''
 
     constraints = []
     for kind, c_data in zip(['test' for i in test], test) + zip(['assertion' for i in assertion], assertion):
@@ -42,12 +48,12 @@ def petl_validate(data, source, header, test, assertion):
     problems = petl.validate(s, **params)
 
     if problems.nrows() > 0:
-        click.secho('Validation Failed!', fg='red')
+        click.secho('{}Validation Failed!'.format(name), fg='red')
         click.secho(str(problems.lookall()), fg='red')
         raise PETLValidationError(problems)
     else:
         if data.config.debug is True:
-            click.secho('Validation Passed!', fg='green')
+            click.secho('{}Validation Passed!'.format(name), fg='green')
 
 command = petl_validate
 

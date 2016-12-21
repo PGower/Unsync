@@ -10,6 +10,7 @@ from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
 from unsync.lib.canvas_api import CanvasAPI
 from unsync.lib.canvas_meta import SIS_TYPES
+from unsync.lib.jinja_templates import render
 
 
 @unsync.command()
@@ -32,9 +33,10 @@ from unsync.lib.canvas_meta import SIS_TYPES
 def upload_file(data, url, api_key, account_id, data_set_id, remaster_data_set, users, accounts, terms, courses, sections, enrollments, groups, group_memberships, xlists, user_observers):
     """Upload a set of CSVs to the Canvas SIS Upload API."""
     old_working_dir = os.getcwd()
+    data_set_name = petname.Generate(3, "_")
 
     app_dir = click.get_app_dir('CANVAS_UNSYNC')
-    app_dir = os.path.join(app_dir, petname.Generate(3, "_"))
+    app_dir = os.path.join(app_dir, data_set_name)
     if not os.path.exists(app_dir):
         # Create if it doesnt exist.
         os.mkdir(app_dir)
@@ -43,6 +45,7 @@ def upload_file(data, url, api_key, account_id, data_set_id, remaster_data_set, 
 
     if not url.startswith('http') or not url.startswith('https'):
         url = 'https://' + url
+        click.secho('Instance URLs should start with http or https. We will automatically fix this. New instance url: {}'.format(url), fg='red')
 
     sources = dict([('users', data.get(users)),
                     ('accounts', data.get(accounts)),
@@ -62,17 +65,20 @@ def upload_file(data, url, api_key, account_id, data_set_id, remaster_data_set, 
         # Check that all of the required headers exist
         missing_required_headers = [i for i in spec['required_columns'] if i not in header]
         if len(missing_required_headers) > 0:
+            click.secho('Required headers: {} are missing from {}.'.format(','.join(missing_required_headers), name), fg='red')
             raise CanvasCSVValidationError('Required headers: {} are missing from {}.'.format(','.join(missing_required_headers), name))
         # Find out which headers to cut
         headers_to_cut = [i for i in spec['columns'] if i in header]
         sources[name] = data.cut(*headers_to_cut)
 
+    used_data_tables = []  # The data tables that actually got zipped.
     zipfile_path = os.path.join(app_dir, 'canvas_data.zip')
     with ZipFile(zipfile_path, 'w') as z:
         for name, data in sources.items():
             csv_name = '{}.csv'.format(name)
             csv_path = os.path.join(app_dir, csv_name)
             if petl.nrows(data) > 0:
+                used_data_tables += (name, )
                 petl.tocsv(data, csv_path)
                 z.write(csv_name)
 
@@ -85,10 +91,14 @@ def upload_file(data, url, api_key, account_id, data_set_id, remaster_data_set, 
 
     r = c.upload_sis_import_file(account_id, zipfile_path, **kwargs)
 
+    r['data_set_name'] = data_set_name
+    r['data_set_path'] = app_dir
+    r['used_data_tables'] = used_data_tables
+
     if r['response'].status_code == 200:
-        click.secho(str(r), fg='green')
+        click.secho(str(render('csv_upload.txt', r)), fg='green')
     else:
-        click.secho(str(r), fg='red')
+        click.secho(str(render('csv_upload.txt', r)), fg='red')
 
     # Change the workingdir back again
     os.chdir(old_working_dir)

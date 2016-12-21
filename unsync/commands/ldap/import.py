@@ -1,6 +1,12 @@
+from __future__ import absolute_import
 import click
-import petl
 import ldap3
+
+# Until I can get fromldap in the main PETL package I need to be a bit defensive.
+try:
+    from petl import fromldap
+except ImportError:
+    from .ldap_view import fromldap  # noqa
 
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
@@ -21,7 +27,7 @@ def ldap_import(data, server, port, use_ssl, user, password, base_ou, query, att
     """Import data from an LDAP server."""
     server = ldap3.Server(server, port=port, use_ssl=use_ssl)
     conn = ldap3.Connection(server=server, user=user, password=password)
-    query_results = petl.fromldap(conn, base_ou, query, attributes=attributes)
+    query_results = fromldap(conn, base_ou, query, attributes=attributes)
     data.cat(destination, query_results)
 
 
