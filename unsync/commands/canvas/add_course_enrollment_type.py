@@ -15,7 +15,7 @@ from unsync.lib.unsync_commands import unsync
 @unsync.command()
 @click.option('--courses', '-c', required=True, type=unicode, help='The table containing courses data.')
 @click.option('--course-id-field', required=True, type=unicode, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
-@click.option('--default-enrollment-value', default=u'TERM', type=click.Choice(['TERM', 'SEM', 'ROT', 'YEAR']), help='The default lifecycle to assign all courses. If not changed in the enrollment-defaults table or the enrollment-mappings table this will stick.')
+@click.option('--default-enrollment-value', default=u'SEM', type=click.Choice(['TERM', 'SEM', 'ROT', 'YEAR']), help='The default lifecycle to assign all courses. If not changed in the enrollment-defaults table or the enrollment-mappings table this will stick.')
 @click.option('--enrollment-defaults', required=True, default='enrollment_defaults', type=unicode, help='A two column (regex,value) table of regexes and enrollment values (ROT,TERM,SEM,YEAR). Any course_id that matches the regex will be updated with the new enrollment value.')
 @click.option('--enrollment-mappings', required=True, default='enrollment_mappings', type=unicode, help='A two column (id,value) table of course_id and enrollment values (ROT,TERM,SEM,YEAR). Any course_id that exactly matches will be updated with the new enrollment value.')
 @pass_data
