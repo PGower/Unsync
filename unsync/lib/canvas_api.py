@@ -1,6 +1,7 @@
 # Super hacky API Client for Canvas
 import requests
 import re
+import urllib
 
 class CanvasAPI(object):
     def __init__(self, instance_address, access_token):
@@ -78,6 +79,7 @@ class CanvasAPI(object):
 
         if all_pages:
             unwrapped_data = self.retrieve_pages({'response': response})
+            import pdb;pdb.set_trace()
             data.extend(unwrapped_data)
             pagination_links = None
         else:
@@ -260,7 +262,7 @@ class CanvasAPI(object):
         data = {'import_type': import_type}
         if batch_mode is not None:
             assert type(batch_mode) == bool
-            data['batch_mode'] = batch_mode
+            data['batch_mode'] = 1
         if batch_mode_term_id is not None:
             data['batch_mode_term_id'] = batch_mode_term_id
         if override_sis_stickiness is not None:
@@ -277,8 +279,13 @@ class CanvasAPI(object):
         if diffing_remaster_data_set is not None:
             assert type(diffing_remaster_data_set) == bool
             data['diffing_remaster_data_set'] = diffing_remaster_data_set
+        # It looks like the Canvas API is doing something weird with the other parameters.
+        # They want a multi-part form in a POST for the file data but they want an urlencoded string for extra params.
+        path = '/api/v1/accounts/{}/sis_imports.json'
+        if data.keys() != []:
+            path += '?' + urllib.urlencode(data)
         with open(file_path, 'rb') as f:
-            return self.generic_post('/api/v1/accounts/{}/sis_imports'.format(account_id), data=data, files={'attachment': ('data.zip', f)})
+            return self.generic_post(path.format(account_id), data=data, files={'attachment': ('data.zip', f)})
 
     def list_sis_imports(self, account_id, created_since=None):
         params = {}
@@ -299,5 +306,8 @@ class CanvasAPIError(Exception):
 
     def __unicode__(self):
         return u'API Request Failed. Response Status was {}, reason was {}'.format(self.code, self.reason)
+
+    def __str__(self):
+        return 'API Request Failed. Response Status was {}, reason was {}'.format(self.code, self.reason)
 
 
