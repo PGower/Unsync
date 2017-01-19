@@ -2,28 +2,46 @@
 import requests
 import re
 import urllib
+import logging
+
+logger = logging.getLogger('canvas.api')
 
 class CanvasAPI(object):
     def __init__(self, instance_address, access_token):
         self.instance_address = instance_address
         self.access_token = access_token
+        logger.debug('Created new CanvasAPI client for instance: {}.'.format('self.instance_address'))
 
         self.session = requests.Session()
         self.session.headers.update({'Authorization': 'Bearer {}'.format(self.access_token)})
+        logger.debug('Using Authorization Token authentication method. Added token to headers: {}'.format('Authorization: Bearer {}'.format(self.access_token)))
 
         self.rel_matcher = re.compile(r' ?rel="([a-z]+)"')
-
 
     def uri_for(self, a):
         return self.instance_address + a
 
-    def extract_pagination_links(self, wrapped_response):
+    def extract_data_from_response(self, response, data_key=None):
+        """Given a response and an optional data_key should return a dictionary of data returned as part of the response."""
+        response_json_data = response.json()
+        if data_key is not None:
+            data = response_json_data[data_key]
+        else:
+            try:
+                # Usually there is only one key.
+                data_key = response_json_data.keys()[0]
+                data = response_json_data[data_key]
+            except IndexError:
+                raise 
+        return data
+
+    def extract_pagination_links(self, response):
         '''Given a wrapped_response from a Canvas API endpoint,
         extract the pagination links from the response headers'''
-        response = wrapped_response['response']
         try:
             link_header = response.headers['Link']
         except KeyError:
+            logger.warn('Unable to find the Link header. Unable to continue with pagination.')
             return None
 
         split_header = link_header.split(',')
@@ -52,45 +70,48 @@ class CanvasAPI(object):
             pagination_links[rel] = link
         return pagination_links
 
+    def has_pagination_links(self, response):
+        return 'Link' in response.headers
 
-    def retrieve_pages(self, wrapped_response):
-        '''Given a wrapped response , request and collate all of the pages'''
-        data = []
-        pagination_links = self.extract_pagination_links(wrapped_response)
-        if pagination_links is None:
-            return data
+
+    # def retrieve_pages(self, wrapped_response):
+    #     '''Given a wrapped response , request and collate all of the pages'''
+    #     data = []
+    #     import pdb;pdb.set_trace()
+    #     pagination_links = self.extract_pagination_links(wrapped_response)
+    #     if pagination_links is None:
+    #         return data
+    #     else:
+    #         while 'next' in pagination_links.keys():
+    #             wrapped_response = self.generic_get(pagination_links['next'])
+    #             data.extend(wrapped_response['data'])
+    #             pagination_links = self.extract_pagination_links(wrapped_response)
+    #         return data
+
+    def depaginate(self, response):
+        logging.debug('Attempting to depaginate response from {}'.format(response.url))
+        all_data = []
+        all_data += self.extract_data_from_response(response)
+        if self.has_pagination_links(response):
+            pagination_links = self.extract_pagination_links(response)
+            while 'next' in pagination_links:
+                response = self.session.get(pagination_links['next'])
+                pagination_links = self.extract_pagination_links(response)
+                all_data += self.extract_data_from_response(response)
         else:
-            while 'next' in pagination_links.keys():
-                wrapped_response = self.generic_get(pagination_links['next'])
-                data.extend(wrapped_response['data'])
-                pagination_links = self.extract_pagination_links(wrapped_response)
-            return data
+            logging.warn('Response from {} has no pagination links.'.format(response.url))
+        return all_data
 
-
-    def generic_get(self, uri, all_pages=False, **kwargs):
+    def generic_get(self, uri, all_pages=False, data_key=None, **kwargs):
         if not uri.startswith('http'):
             uri = self.uri_for(uri)
         response = self.session.get(uri, **kwargs)
-
         if response.status_code != 200:
             raise CanvasAPIError(response)
 
-        data = response.json()
-
-        if all_pages:
-            unwrapped_data = self.retrieve_pages({'response': response})
-            import pdb;pdb.set_trace()
-            data.extend(unwrapped_data)
-            pagination_links = None
-        else:
-            pagination_links = self.extract_pagination_links({'response': response})
-
-        wrapped_response = {
-            'data': data,
-            'response': response,
-            'pagination': pagination_links,
-        }
-        return wrapped_response
+        data = self.depaginate(response)
+        
+        return data
 
     def generic_post(self, uri, **kwargs):
         if not uri.startswith('http'):
@@ -168,7 +189,7 @@ class CanvasAPI(object):
     def list_terms_for_account(self, account_id, state='all'):
         assert state in ['all', 'active', 'deleted']
         params = {'workflow_state': state}
-        return self.generic_get('/api/v1/accounts/{}/terms'.format(account_id), params=params)
+        return self.generic_get('/api/v1/accounts/{}/terms'.format(account_id), params=params, all_pages=True)
 
 
     # def list_all_terms():
@@ -311,3 +332,6 @@ class CanvasAPIError(Exception):
         return 'API Request Failed. Response Status was {}, reason was {}'.format(self.code, self.reason)
 
 
+class CanvasDataKeyError(Exception):
+    def __init__(self):
+        pass

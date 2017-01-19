@@ -15,10 +15,10 @@ from unsync.lib.jinja_templates import render
 def list_terms(data, url, api_key, account_id, state):
     if not url.startswith('http') or not url.startswith('https'):
         url = 'https://' + url
-    
+
     client = CanvasAPI(url, api_key)
     r = client.list_terms_for_account(account_id, state)
-    for term in r['data']['enrollment_terms']:
+    for term in r:
         click.echo(render('term_info.txt', term))
 
 

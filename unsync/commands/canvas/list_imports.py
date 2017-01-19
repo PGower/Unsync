@@ -19,7 +19,7 @@ def list_imports(data, limit, url, api_key, account_id):
     client = CanvasAPI(url, api_key)
     r = client.list_sis_imports(account_id)
 
-    for count, import_data in zip(range(1, len(r['data']['sis_imports'])), r['data']['sis_imports']):
+    for count, import_data in zip(range(1, len(r)), r):
         if count <= limit:
             click.echo(render('import_info.txt', {'import': import_data}))
         else:
