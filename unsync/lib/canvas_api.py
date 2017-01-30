@@ -24,16 +24,24 @@ class CanvasAPI(object):
     def extract_data_from_response(self, response, data_key=None):
         """Given a response and an optional data_key should return a dictionary of data returned as part of the response."""
         response_json_data = response.json()
-        if data_key is not None:
-            data = response_json_data[data_key]
-        else:
-            try:
-                # Usually there is only one key.
-                data_key = response_json_data.keys()[0]
+        # Seems to be two types of response, a dict with keys and then lists of data or a flat list data with no key.
+        if type(response_json_data) == list:
+            # Return the data
+            return response_json_data
+        elif type(response_json_data) == dict:
+            if data_key is not None:
                 data = response_json_data[data_key]
-            except IndexError:
-                raise 
-        return data
+            else:
+                try:
+                    # Usually there is only one key.
+                    data_key = response_json_data.keys()[0]
+                    data = response_json_data[data_key]
+                except IndexError:
+                    # There was a data key but no data??
+                    raise CanvasAPIError(response)
+            return data
+        else:
+            raise CanvasAPIError(response)
 
     def extract_pagination_links(self, response):
         '''Given a wrapped_response from a Canvas API endpoint,
@@ -88,16 +96,16 @@ class CanvasAPI(object):
     #             pagination_links = self.extract_pagination_links(wrapped_response)
     #         return data
 
-    def depaginate(self, response):
+    def depaginate(self, response, data_key=None):
         logging.debug('Attempting to depaginate response from {}'.format(response.url))
         all_data = []
-        all_data += self.extract_data_from_response(response)
+        all_data += self.extract_data_from_response(response, data_key=data_key)
         if self.has_pagination_links(response):
             pagination_links = self.extract_pagination_links(response)
             while 'next' in pagination_links:
                 response = self.session.get(pagination_links['next'])
                 pagination_links = self.extract_pagination_links(response)
-                all_data += self.extract_data_from_response(response)
+                all_data += self.extract_data_from_response(response, data_key=data_key)
         else:
             logging.warn('Response from {} has no pagination links.'.format(response.url))
         return all_data
@@ -110,7 +118,18 @@ class CanvasAPI(object):
             raise CanvasAPIError(response)
 
         data = self.depaginate(response)
-        
+
+        return data
+
+    def generic_put(self, uri, all_pages=False, data_key=None, **kwargs):
+        if not uri.startswith('http'):
+            uri = self.uri_for(uri)
+        response = self.session.put(uri, **kwargs)
+        if response.status_code != 200:
+            raise CanvasAPIError(response)
+
+        data = self.depaginate(response)
+
         return data
 
     def generic_post(self, uri, **kwargs):
@@ -129,6 +148,31 @@ class CanvasAPI(object):
             'pagination': None,
         }
         return wrapped_response
+
+    def generic_request(self, uri, method, all_pages=False, data_key=None, no_data=False, **kwargs):
+        if not uri.startswith('http'):
+            uri = self.uri_for(uri)
+
+        assert method in ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']
+
+        if method == 'GET':
+            response = self.session.get(uri, **kwargs)
+        elif method == 'POST':
+            response = self.session.post(uri, **kwargs)
+        elif method == 'PUT':
+            response = self.session.put(uri, **kwargs)
+        elif method == 'DELETE':
+            response = self.session.delete(uri, **kwargs)
+        elif method == 'HEAD':
+            response = self.session.head(uri, **kwargs)
+        elif method == 'OPTIONS':
+            response = self.session.options(uri, **kwargs)
+
+        if no_data:
+            return response.status_code
+        else:
+            return self.depaginate(response, data_key)
+
 
     def list_roles(self, account_id=1):
         '''Get all of the defined roles for the given account_id.
@@ -317,19 +361,40 @@ class CanvasAPI(object):
     def get_sis_import_status(self, account_id, sis_import_id):
         return self.generic_get('/api/v1/accounts/{}/sis_imports/{}'.format(account_id, sis_import_id))
 
+    def list_logins_for_account(self, account_id):
+        return self.generic_get('/api/v1/accounts/{}/logins'.format(account_id))
+
+    def list_logins_for_user(self, user_id):
+        return self.generic_get('/api/v1/users/{}/logins'.format(user_id))
+
+    def edit_user_login(self, account_id, login_id, unique_id=None, password=None, sis_user_id=None, integration_id=None):
+        data = {}
+        if unique_id is not None:
+            data['login[unique_id]'] = unique_id
+        if password is not None:
+            data['login[password]'] = password
+        if sis_user_id is not None:
+            data['login[sis_user_id]'] = sis_user_id
+        if integration_id is not None:
+            data['login[integration_id]'] = integration_id
+        return self.generic_request('/api/v1/accounts/{}/logins/{}'.format(account_id, login_id), 'PUT', data=data, no_data=True)
+
+    def list_users_for_account(self, account_id, search_term=None):
+        params = {}
+        if search_term is not None:
+            params['search_term'] = search_term
+        return self.generic_get('/api/v1/accounts/{}/users'.format(account_id), params=params)
 
 
 class CanvasAPIError(Exception):
-    def init(self, response):
-        self.code = response.status_code
-        self.reason = response.reason
+    def __init__(self, response):
         self.response = response
 
     def __unicode__(self):
-        return u'API Request Failed. Response Status was {}, reason was {}'.format(self.code, self.reason)
+        return u'API Request Failed. Status: {} Content: {}'.format(self.response.status_code, self.response.content)
 
     def __str__(self):
-        return 'API Request Failed. Response Status was {}, reason was {}'.format(self.code, self.reason)
+        return 'API Request Failed. Status: {} Content: {}'.format(self.response.status_code, self.response.content)
 
 
 class CanvasDataKeyError(Exception):

@@ -1,0 +1,6 @@
+{{workflow_state|upper}} Canvas Enrollment Term: {{name}}
+{% if start_at and end_at %}
+Starts: {{start_at}} - Ends: {{end_at}}
+{% endif %}
+Canvas ID: {{id}}   SIS Term ID: {{sis_term_id}}
+----------------------------------------------------------

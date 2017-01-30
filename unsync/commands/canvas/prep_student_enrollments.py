@@ -20,7 +20,7 @@ def prep_student_enrollments(data, ptf9_enrollments, ptf9_students, destination)
     enrollments = (enrollments
                    .cut('user_id', 'course_id')
                    .addfield('role', 'student')
-                   # .convert('user_id', lambda v: 'c{}'.format(v))
+                   .convert('user_id', lambda v: 'c{}'.format(v))
                    .select(lambda rec: rec.course_id is not None and rec.user_id is not None))
 
     data.set(destination, enrollments)
