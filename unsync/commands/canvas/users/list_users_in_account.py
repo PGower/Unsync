@@ -1,9 +1,10 @@
-from unsync.lib.canvas_api import CanvasAPI
 import click
 
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
-from unsync.lib.jinja_templates import render
+
+from pycanvas.apis.users import UsersAPI
+
 import petl
 
 
@@ -18,9 +19,8 @@ def list_account_users(data, url, api_key, account_id, search_term, destination)
     if not url.startswith('http') or not url.startswith('https'):
         url = 'https://' + url
 
-    client = CanvasAPI(url, api_key)
-    r = client.list_users_for_account(account_id, search_term)
+    client = UsersAPI(url, api_key)
+    r = client.list_users_in_account(account_id, search_term)
     data.cat(destination, petl.fromdicts(r))
-
 
 command = list_account_users

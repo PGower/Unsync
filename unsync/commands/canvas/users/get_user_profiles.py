@@ -1,10 +1,11 @@
-from unsync.lib.canvas_api import CanvasAPI, CanvasAPIError
 import click
 import petl
 
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
 from unsync.lib.jinja_templates import render
+
+from pycanvas.apis.users import UserAPI
 
 
 @unsync.command()
@@ -14,7 +15,7 @@ from unsync.lib.jinja_templates import render
 @click.option('--user-id-field', required=True, default='id', help='Name of the column that contains Canvas user IDs')
 @click.option('--destination', '-d', required=True, help='The destination table for all retrieved data.')
 @pass_data
-def get_user_logins(data, url, api_key, user_data, user_id_field, destination):
+def get_user_profiles(data, url, api_key, user_data, user_id_field, destination):
 
     if not url.startswith('http') or not url.startswith('https'):
         url = 'https://' + url
@@ -22,21 +23,22 @@ def get_user_logins(data, url, api_key, user_data, user_id_field, destination):
     user_data = data.get(user_data)
     user_data = user_data.dicts()
 
-    login_data = []
+    profile_data = []
 
     debug = data.config.debug
 
-    client = CanvasAPI(url, api_key)
+    client = UserAPI(url, api_key)
     for user in user_data:
         try:
-            r = client.list_logins_for_user(user[user_id_field])
-            click.secho('Retrieved {} Canvas Logins for Canvas User ID: {}'.format(len(r), user[user_id_field]), fg='green')
+            r = client.get_user_profile(user[user_id_field])
+            import pdb;pdb.set_trace()
+            profile_data.append(r)
+            if debug:
+                click.secho('Retrieved Profile for Canvas User ID: {}'.format(len(r), user[user_id_field]), fg='green')
         except CanvasAPIError as e:
-            click.secho('Unable to retrieve Canvas Login information for Canvas User ID: {}'.format(user[user_id_field]), fg='red')
-        for login in r:
-            login_data.append(login)
+            click.secho('Unable to retrieve Profile for Canvas User ID: {}'.format(user[user_id_field]), fg='red')
 
-    login_data = petl.fromdicts(login_data)
-    data.set(destination, login_data)
+    profile_data = petl.fromdicts(profile_data)
+    data.set(destination, profile_data)
 
-command = get_user_logins
+command = get_user_profiles

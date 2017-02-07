@@ -15,7 +15,7 @@ from timeit import default_timer as timer
 
 # TODO: Figure out how to use the default_map context setting to read variables out of a config file or something to that effect.
 class UnsyncCommands(click.MultiCommand):
-    """A Custom MultiCommand which loads commands from individual files in the """
+    """A Custom MultiCommand which loads commands from individual files in the command_dir."""
 
     def __init__(self, command_dir=None, *args, **kwargs):
         """Ensure that an UnsyncData object is initialized in the root context. Replaces @pass_data for this object."""

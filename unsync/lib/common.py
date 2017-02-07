@@ -2,7 +2,7 @@
 # from __future__ import absolute_import
 import click
 import petl
-from canvas_api import CanvasAPIError
+# from canvas_api import CanvasAPIError
 import arrow
 
 
@@ -35,15 +35,15 @@ import arrow
 #     pass
 
 
-def extract_api_data(response, header, empty_value=None):
-    if response['response'].status_code == 200:
-        t = [header]
-        for i in response['data']:
-            t.append([i.get(j, empty_value) for j in header])
-        return petl.wrap(t)
-    else:
-        click.secho('Looks like something went wrong: {} {}.'.format(response['response'].status_code, response['response'].reason), err=True, fg='red')
-        raise CanvasAPIError(response['response'])
+# def extract_api_data(response, header, empty_value=None):
+#     if response['response'].status_code == 200:
+#         t = [header]
+#         for i in response['data']:
+#             t.append([i.get(j, empty_value) for j in header])
+#         return petl.wrap(t)
+#     else:
+#         click.secho('Looks like something went wrong: {} {}.'.format(response['response'].status_code, response['response'].reason), err=True, fg='red')
+#         raise CanvasAPIError(response['response'])
 
 
 def select_term_id(target_date, kind, terms, date_format='YYYY-MM-DDTHH:mm:ss'):

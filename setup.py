@@ -43,7 +43,8 @@ setup(
         'six==1.10.0',
         'traitlets==4.3.1',
         'wcwidth==0.1.7',
-        'win-unicode-console==0.5'
+        'win-unicode-console==0.5',
+        'pycanvas',
     ],
     entry_points={
         'console_scripts': [

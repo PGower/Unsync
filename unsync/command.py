@@ -16,14 +16,11 @@ from unsync.lib.unsync_commands import UnsyncCommands  # noqa
 from unsync.lib.unsync_data import pass_data  # noqa
 
 
-COMMAND_DIR = os.path.join(BASE_PATH, 'commands')
+MODULE_COMMAND_DIR = os.path.join(BASE_PATH, 'commands')
+LOCAL_COMMAND_DIR = os.path.join(os.getcwd(), 'commands')
 
 
-@click.group(cls=UnsyncCommands, chain=True, help='Canvas Unsync Commands', command_dir=COMMAND_DIR)
-@click.option('--debug/--no-debug', default=False, help='Turn on debugging for all commands.')
-@click.option('--force-table-realization/--no-force-table-realization', default=False, help='When turned on the data tables will be "realised" after each processing step. This will force errors to become apparent earlier.')
-@pass_data
-def cli(data, debug, force_table_realization):
+def cli_prototype(data, debug, force_table_realization):
     data.config.debug = debug
     data.config.force_table_realization = force_table_realization
 
@@ -42,6 +39,27 @@ def cli(data, debug, force_table_realization):
         requests_log = logging.getLogger("requests.packages.urllib3")
         requests_log.setLevel(logging.DEBUG)
         requests_log.propagate = True
+
+
+@click.group(cls=UnsyncCommands, chain=True, help='Canvas Unsync Commands', command_dir=MODULE_COMMAND_DIR)
+@click.option('--debug/--no-debug', default=False, help='Turn on debugging for all commands.')
+@click.option('--force-table-realization/--no-force-table-realization', default=False, help='When turned on the data tables will be "realised" after each processing step. This will force errors to become apparent earlier.')
+@pass_data
+def cli_module(data, debug, force_table_realization):
+    return cli_prototype(data, debug, force_table_realization)
+
+click.secho(LOCAL_COMMAND_DIR)
+if os.path.exists(LOCAL_COMMAND_DIR):
+    @click.group(cls=UnsyncCommands, chain=True, help='Canvas Unsync Commands', command_dir=LOCAL_COMMAND_DIR)
+    @click.option('--debug/--no-debug', default=False, help='Turn on debugging for all commands.')
+    @click.option('--force-table-realization/--no-force-table-realization', default=False, help='When turned on the data tables will be "realised" after each processing step. This will force errors to become apparent earlier.')
+    @pass_data
+    def cli_local(data, debug, force_table_realization):
+        return cli_prototype(data, debug, force_table_realization)
+
+    cli = click.CommandCollection(sources=[cli_module, cli_local])
+else:
+    cli = cli_module
 
 
 if __name__ == '__main__':

@@ -6,7 +6,10 @@ import ldap3
 try:
     from petl import fromldap
 except ImportError:
-    from .ldap_view import fromldap  # noqa
+    import os
+    import sys
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from ldap_view import fromldap  # noqa
 
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
