@@ -45,6 +45,7 @@ setup(
         'wcwidth==0.1.7',
         'win-unicode-console==0.5',
         'pycanvas',
+        'lxml'
     ],
     entry_points={
         'console_scripts': [
