@@ -24,6 +24,8 @@ def prep_staff_enrollments(data, ptf9_enrollments, ptf9_staff, ptf9_courses, des
 
     enrollments = petl.leftjoin(enrollments, courses, key='ClassID')
     enrollments = petl.leftjoin(enrollments, staff, key='TeacherID')
+    # Just ignore any data without a TeacherID or TeacherCode, it wont work and we wont miss anything by ignoring it.
+    enrollments = petl.select(enrollments, lambda rec: rec['TeacherID'] is not None and rec['TeacherCode'] is not None)
     enrollments = petl.lookupjoin(enrollments, id_map, lkey='TeacherCode', rkey='tt_id')
     enrollments = (enrollments
                    .addfield('role', 'teacher')
