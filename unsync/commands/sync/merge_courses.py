@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import click
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
+import petl
 
 
 @unsync.command()
@@ -28,11 +29,17 @@ def merge_courses(data, courses, course_id_field, course_name_field, merge_data,
     courses_table = courses_table.select(course_id_field, lambda v: v not in source_course_ids_to_remove)
 
     # Save the removed courses to a seperate table for later use
-    if save_removed_courses and merge_data.nrows() > 0:
-        source_courses_to_remove = (source_courses_to_remove
-                                    .lookupjoin(merge_data, lkey='course_id', rkey='source_id')
-                                    # .cut('course_id', 'merged_id')
-                                    .rename('merged_id', 'merged_course_id'))
+    if save_removed_courses:
+        if merge_data.nrows() > 0:
+            # There is merge data so the normal method of generating the courses to remove will work
+            source_courses_to_remove = source_courses_to_remove.lookupjoin(merge_data, lkey='course_id', rkey='source_id')
+        else:
+            # There is no merge data and so there will be no source_courses_to_remove. We still need to output a csv file with the correct headers though.
+            merge_data_header = merge_data.header()
+            source_courses_to_remove_header = source_courses_to_remove.header()
+            source_courses_to_remove = petl.wrap([merge_data_header + source_courses_to_remove_header])
+
+        source_courses_to_remove = source_courses_to_remove.rename('merged_id', 'merged_course_id')
         data.set(removed_courses_destination, source_courses_to_remove)
 
     # Work out which merge courses I need to create, this will be any merge course that has a source course to be removed
