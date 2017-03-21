@@ -1,4 +1,5 @@
 """Generate the full Canvas course_id by looking at the course lifecycle_type and appending the sis_id of the appropriate time period."""
+from __future__ import unicode_literals
 
 import click
 from unsync.lib.unsync_data import pass_data
@@ -8,8 +9,8 @@ import arrow
 
 
 @unsync.command()
-@click.option('--courses', required=True, type=unicode, help='The source courses table containing courses to be merged.')
-@click.option('--course-id-field', required=True, type=unicode, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
+@click.option('--courses', required=True, type=str, help='The source courses table containing courses to be merged.')
+@click.option('--course-id-field', required=True, type=str, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
 @click.option('--terms', required=True, help='The term data to use for lookups. Expected to be in Canvas CSV format. The term_id field is expected to be in the form <lifecycle_type><int>_<year>. Ex TERM1_2017, SEM1_2017, ROT1_2017.')
 @click.option('--target-date', help='A date in ISO 8601 format to use for term selection. Defaults to the current date. Used to generate course IDs')
 @pass_data

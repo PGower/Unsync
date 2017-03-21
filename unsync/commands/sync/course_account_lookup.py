@@ -1,4 +1,5 @@
 """Canvas specific command to assign sis_account_ids to courses based on their course_id."""
+from __future__ import unicode_literals
 
 import click
 from unsync.lib.unsync_data import pass_data
@@ -7,10 +8,10 @@ import re
 
 
 @unsync.command()
-@click.option('--courses', required=True, type=unicode, help='The source courses table containing courses to be merged.')
-@click.option('--course-id-field', required=True, type=unicode, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
-@click.option('--account-id-field', required=True, type=unicode, default='account_id', help='The field name for the account id. Defaults to Canvas standard account_id.')
-@click.option('--account-data', required=True, type=unicode, help='Table containing pairs of Account Names and Matching Regexes.')
+@click.option('--courses', required=True, type=str, help='The source courses table containing courses to be merged.')
+@click.option('--course-id-field', required=True, type=str, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
+@click.option('--account-id-field', required=True, type=str, default='account_id', help='The field name for the account id. Defaults to Canvas standard account_id.')
+@click.option('--account-data', required=True, type=str, help='Table containing pairs of Account Names and Matching Regexes.')
 @click.option('--missing-account', default=None, help='Value to use if no match is made.')
 @pass_data
 def account_lookup(data, courses, course_id_field, account_id_field, account_data, missing_account):

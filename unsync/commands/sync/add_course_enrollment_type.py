@@ -5,6 +5,7 @@ Applied using a 3 step process.
 2. All courses are itierated through, any course that has a course_id_field value that matches a regex from the enrollment_defaults table has its enrollment_type field set to that new value.
 3. All courses are iterated and any course that has a course_id field that exactly matches one in the enrollment_mappings table has its enrollment_type field set to the new value.
 """
+from __future__ import unicode_literals
 
 import click
 import re
@@ -13,11 +14,11 @@ from unsync.lib.unsync_commands import unsync
 
 
 @unsync.command()
-@click.option('--courses', '-c', required=True, type=unicode, help='The table containing courses data.')
-@click.option('--course-id-field', required=True, type=unicode, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
+@click.option('--courses', '-c', required=True, type=str, help='The table containing courses data.')
+@click.option('--course-id-field', required=True, type=str, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
 @click.option('--default-enrollment-value', default=u'SEM', type=click.Choice(['TERM', 'SEM', 'ROT', 'YEAR']), help='The default lifecycle to assign all courses. If not changed in the enrollment-defaults table or the enrollment-mappings table this will stick.')
-@click.option('--enrollment-defaults', required=True, default='enrollment_defaults', type=unicode, help='A two column (regex,value) table of regexes and enrollment values (ROT,TERM,SEM,YEAR). Any course_id that matches the regex will be updated with the new enrollment value.')
-@click.option('--enrollment-mappings', required=True, default='enrollment_mappings', type=unicode, help='A two column (id,value) table of course_id and enrollment values (ROT,TERM,SEM,YEAR). Any course_id that exactly matches will be updated with the new enrollment value.')
+@click.option('--enrollment-defaults', required=True, default='enrollment_defaults', type=str, help='A two column (regex,value) table of regexes and enrollment values (ROT,TERM,SEM,YEAR). Any course_id that matches the regex will be updated with the new enrollment value.')
+@click.option('--enrollment-mappings', required=True, default='enrollment_mappings', type=str, help='A two column (id,value) table of course_id and enrollment values (ROT,TERM,SEM,YEAR). Any course_id that exactly matches will be updated with the new enrollment value.')
 @pass_data
 def add_course_enrollment_type(data, courses, course_id_field, default_enrollment_value, enrollment_defaults, enrollment_mappings):
     """Apply the course enrollment type value."""

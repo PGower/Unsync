@@ -5,6 +5,7 @@ Lifecycle is assigned in 3 steps.
 2. All courses are itierated through, any course that has a course_id_field value that matches a regex from the lifecycle_defaults table has its lifecycle_value field set to that new value.
 3. All courses are iterated and any course that has a course_id field that exactly matches one in the lifecycle_mappings table has its lifecycle_value field set to the new value.
 """
+from __future__ import unicode_literals
 
 import click
 import re
@@ -13,11 +14,11 @@ from unsync.lib.unsync_commands import unsync
 
 
 @unsync.command()
-@click.option('--courses', '-c', required=True, type=unicode, help='The table containing courses data.')
-@click.option('--course-id-field', required=True, type=unicode, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
+@click.option('--courses', '-c', required=True, type=str, help='The table containing courses data.')
+@click.option('--course-id-field', required=True, type=str, default='course_id', help='The field name for the courses id. Defaults to Canvas standard course_id.')
 @click.option('--default-lifecycle-value', default=u'SEM', type=click.Choice(['TERM', 'SEM', 'ROT', 'YEAR']), help='The default lifecycle to assign all courses. If not changed in the lifecycle-defaults table or the lifecycle-mappings table this will stick.')
-@click.option('--lifecycle-defaults', required=True, default='lifecycle_defaults', type=unicode, help='A two column (regex,value) table of regexes and lifecycle values (ROT,TERM,SEM,YEAR). Any course_id that matches the regex will be updated with the new lifecycle value.')
-@click.option('--lifecycle-mappings', required=True, default='lifecycle_mappings', type=unicode, help='A two column (id,value) table of course_id and lifecycle values (ROT,TERM,SEM,YEAR). Any course_id that exactly matches will be updated with the new lifecycle value.')
+@click.option('--lifecycle-defaults', required=True, default='lifecycle_defaults', type=str, help='A two column (regex,value) table of regexes and lifecycle values (ROT,TERM,SEM,YEAR). Any course_id that matches the regex will be updated with the new lifecycle value.')
+@click.option('--lifecycle-mappings', required=True, default='lifecycle_mappings', type=str, help='A two column (id,value) table of course_id and lifecycle values (ROT,TERM,SEM,YEAR). Any course_id that exactly matches will be updated with the new lifecycle value.')
 @pass_data
 def add_course_lifecycle(data, courses, course_id_field, default_lifecycle_value, lifecycle_defaults, lifecycle_mappings):
     """Apply the course lifecycle_value."""
