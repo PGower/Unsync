@@ -1,7 +1,7 @@
 """The CanvasUnsync data object. Passed between all commands."""
 import petl
 import click
-from canvas_meta import SIS_TYPES, SIS_TYPE_NAMES
+from .canvas_meta import SIS_TYPES, SIS_TYPE_NAMES
 from timeit import default_timer as timer
 
 
