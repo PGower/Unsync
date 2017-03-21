@@ -1,4 +1,5 @@
 """PETL Join Command."""
+from __future__ import unicode_literals
 
 import click
 import petl
@@ -11,10 +12,10 @@ from unsync.lib.unsync_commands import unsync
 @click.option('--source-left', '-sl', required=True, help='The "left" table in the join.')
 @click.option('--source-right', '-sr', required=True, help='The "right table in the join.')
 @click.option('--destination', '-d', required=True, help='The destination for the joined tables.')
-@click.option('--key-left', '-kl', multiple=True, required=True, type=unicode, help='The key field for the left table. May be repeated to form a compound key.')
-@click.option('--key-right', '-kr', multiple=True, required=True, type=unicode, help='The key field for the right table. May be repeated to form a compound key.')
-@click.option('--prefix-left', '-pl', default=None, type=unicode, help='The left prefix.')
-@click.option('--prefix-right', '-pr', default=None, type=unicode, help='The right prefix.')
+@click.option('--key-left', '-kl', multiple=True, required=True, type=str, help='The key field for the left table. May be repeated to form a compound key.')
+@click.option('--key-right', '-kr', multiple=True, required=True, type=str, help='The key field for the right table. May be repeated to form a compound key.')
+@click.option('--prefix-left', '-pl', default=None, type=str, help='The left prefix.')
+@click.option('--prefix-right', '-pr', default=None, type=str, help='The right prefix.')
 @click.option('--presorted/--no-presorted', default=False, help='Are the tables presorted?')
 @click.option('--buffersize', default=None, type=int, help="Controls how presorting is performed. See http://petl.readthedocs.io/en/latest/transform.html#petl.transform.sorts.sort")
 @click.option('--tempdir', type=click.Path(file_okay=False, dir_okay=True, exists=True, writable=True, resolve_path=True), help='Location to store chunks when sorting.')

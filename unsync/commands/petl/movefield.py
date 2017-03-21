@@ -1,4 +1,6 @@
 """PETL Head Command."""
+from __future__ import unicode_literals
+
 import click
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
@@ -7,7 +9,7 @@ from unsync.lib.unsync_commands import unsync
 @unsync.command()
 @click.option('--source', '-s', required=True, help='Name of the source data table.')
 @click.option('--destination', '-d', help='Name of the destination data table. Will default to the source table if not specified.')
-@click.option('--field', required=True, type=unicode, help='Name of the field to move.')
+@click.option('--field', required=True, type=str, help='Name of the field to move.')
 @click.option('--index', required=True, type=int, help='New index of the field.')
 @pass_data
 def petl_movefield(data, source, destination, field, index):
