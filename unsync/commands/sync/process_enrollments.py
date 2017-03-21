@@ -32,7 +32,11 @@ def process_enrollments(data, enrollments, courses, merged_courses, terms, targe
     course_rename_table = courses.cut('course_id', 'old_course_id')
 
     # Find out which courses are merged and mark them with their merged course name, all others are marked as NOT_MERGED
-    enrollments_table = petl.lookupjoin(enrollments_table, merged_courses, key='course_id', missing='NOT_MERGED')
+    if merged_courses.nrows() > 0:
+        enrollments_table = petl.lookupjoin(enrollments_table, merged_courses, key='course_id', missing='NOT_MERGED')
+    else:
+        # There is no merged_courses data so the lookup will fail. Mark all courses as NOT_MERGED
+        enrollments_table = enrollments_table.addfield('merged_course_id', 'NOT_MERGED')
     enrollments_table = enrollments_table.sort('course_id')
 
     # Split the enrollments into merged and unmerged. Need to treat them differently
@@ -68,29 +72,36 @@ def process_enrollments(data, enrollments, courses, merged_courses, terms, targe
     # Remove extraneous fields
     standard_enrollments = standard_enrollments.cut('course_id', 'root_account', 'user_id', 'role', 'role_id', 'section_id', 'status', 'associated_user_id')
 
-    # == MERGED COURSE ENROLLMENTS ==  
-    # Fill the enrollment type
-    merged_enrollments = petl.lookupjoin(merged_enrollments, enrollment_type_lookup, lkey='merged_course_id', rkey='old_course_id')
+    all_enrollments = standard_enrollments
 
-    # Save old course id and fill new course id
-    merged_enrollments = merged_enrollments.rename('course_id', 'old_course_id')
-    merged_enrollments = petl.hashlookupjoin(merged_enrollments, course_rename_table, lkey='merged_course_id', rkey='old_course_id')
+    # == MERGED COURSE ENROLLMENTS ==
+    if merged_courses.nrows() > 0:
+        # Only process merged enrollments if there is merged_courses data
+        # Fill the enrollment type
+        merged_enrollments = petl.lookupjoin(merged_enrollments, enrollment_type_lookup, lkey='merged_course_id', rkey='old_course_id')
 
-    # Generate the section IDs
-    def merged_course_section_id_generator(v, rec):
-        term_id = select_term_id(target_date, rec.enrollment_type, terms)
-        return '{}_{}_{}'.format(rec.old_course_id, rec.merged_course_id, term_id)
+        # Save old course id and fill new course id
+        merged_enrollments = merged_enrollments.rename('course_id', 'old_course_id')
+        merged_enrollments = petl.hashlookupjoin(merged_enrollments, course_rename_table, lkey='merged_course_id', rkey='old_course_id')
 
-    merged_enrollments = merged_enrollments.convert('section_id', merged_course_section_id_generator, pass_row=True)
+        # Generate the section IDs
+        def merged_course_section_id_generator(v, rec):
+            term_id = select_term_id(target_date, rec.enrollment_type, terms)
+            return '{}_{}_{}'.format(rec.old_course_id, rec.merged_course_id, term_id)
 
-    # Store raw processed enrollment data if raw_merged_enrollment_data was passed
-    if raw_merged_enrollment_data is not None:
-        data.set(raw_merged_enrollment_data, merged_enrollments)
+        merged_enrollments = merged_enrollments.convert('section_id', merged_course_section_id_generator, pass_row=True)
 
-    # Remove extraneous fields
-    merged_enrollments = merged_enrollments.cut('course_id', 'root_account', 'user_id', 'role', 'role_id', 'section_id', 'status', 'associated_user_id')
+        # Store raw processed enrollment data if raw_merged_enrollment_data was passed
+        if raw_merged_enrollment_data is not None:
+            data.set(raw_merged_enrollment_data, merged_enrollments)
 
-    all_enrollments = petl.cat(standard_enrollments, merged_enrollments)
+        # Remove extraneous fields
+        merged_enrollments = merged_enrollments.cut('course_id', 'root_account', 'user_id', 'role', 'role_id', 'section_id', 'status', 'associated_user_id')
+
+        all_enrollments = all_enrollments.cat(merged_enrollments)
+
+    # TODO: There is an issue here with raw_merged_enrollment_data never being set if there is no merged_courses data. I think a set of headers should be generated at the very least.
+
     data.set(enrollments, all_enrollments)
 
 command = process_enrollments
