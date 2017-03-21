@@ -50,7 +50,7 @@ def select_term_id(target_date, kind, terms, date_format='YYYY-MM-DDTHH:mm:ss'):
     """Return the sis_term_id from the passed terms table where the kind matches the term and the target_date falls within the target date."""
     ctx = click.get_current_context()
 
-    if issubclass(type(target_date), basestring):
+    if issubclass(type(target_date), str):
         target_date = arrow.get(target_date, date_format)
 
     try:

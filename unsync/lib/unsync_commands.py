@@ -1,6 +1,5 @@
 """Subclasses for the Click commands which implement custom functionality."""
 import click
-# from unsync_data import UnsyncData
 import os
 import imp
 from click.decorators import _make_command
