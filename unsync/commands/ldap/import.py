@@ -23,7 +23,7 @@ from unsync.lib.unsync_commands import unsync
 @pass_data
 def ldap_import(data, connection_name, base_ou, query, attributes, destination):
     """Import data from an LDAP server."""
-    conn = data.values(connection_name)
+    conn = data.values[connection_name]
     query_results = fromldap(conn, base_ou, query, attributes=attributes)
     data.set(destination, query_results)
 
