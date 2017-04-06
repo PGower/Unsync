@@ -111,3 +111,13 @@ class Unsync(object):
             return cmd
         return decorator
 unsync = Unsync
+
+
+# This is a handy way to define a set of options once and the reuse them across commands.
+def add_options(options):
+    '''Using callbacks append all of the common options from the options list to the passed function.'''
+    def _add_options(func):
+        for option in reversed(options):
+            func = option(func)
+        return func
+    return _add_options
