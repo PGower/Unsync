@@ -1,4 +1,4 @@
-'''MSSQL specific command to import data from an SQL query.'''
+'''Create and store an MSSQL (PyTDS) connection '''
 from __future__ import unicode_literals
 
 from unsync.lib.unsync_data import pass_data
@@ -26,6 +26,7 @@ def validate_port(ctx, param, value):
 # row_strategy=None
 
 @unsync.command()
+@click.option('--connection-name', type=str, help='The name used to store this connection in the value registry.')
 @click.option('--dsn', type=str, help='SQL server host and instance: <host>[<instance>]')
 @click.option('--failover-partner', default=None, type=str, help='Secondary database host, used if primary is not accessible')
 @click.option('--database', default=None, type=str, help='The database to initially connect to')
@@ -35,8 +36,7 @@ def validate_port(ctx, param, value):
 @click.option('--login-timeout', default=15, type=int, help='timeout for connection and login in seconds, default 15')
 # @click.option('--as-dict', default=False, type=bool, help='whether rows should be returned as dictionaries instead of tuples.')  # Pretty sure this will break petl if its turned on.
 @click.option('--appname', default='UNSYNC', type=str, help='Set the application name to use for the connection')
-@click.option('--server', default=None, type=str, help='')
-@click.option('--port', default=None, type=int, callback=validate_port, help='the TCP port to use to connect to the server')
+# @click.option('--port', default=None, type=int, callback=validate_port, help='the TCP port to use to connect to the server')
 @click.option('--autocommit/--no-autocommit', default=False, help='Enable or disable database level autocommit')
 @click.option('--blocksize', default=4096, type=int, help=' Size of block for the TDS protocol, usually should not be used')
 @click.option('--use-mars/--no-use-mars', default=False, help='Enable or disable MARS')
@@ -44,11 +44,8 @@ def validate_port(ctx, param, value):
 @click.option('--bytes-to-unicode/--no-bytes-to-unicode', default=True, help='If true single byte database strings will be converted to unicode Python strings, otherwise will return strings as bytes without conversion.')
 # @click.option('--auth-type', default=None, type=click.Choice(['NTLM', 'SSPI']), help='Alternative authentication method.')
 @click.option('--tz-offset', default=None, type=int, help='Fixed offset in minutes east from UTC.')
-@click.option('--query', type=str, help='SQL query to make against the connection.')
-@click.option('--destination', type=str, help='Destination table to store the data in.')
-
 @pass_data
-def mssql_import(data, dsn, failover_partner, database, user, password, timeout, login_timeout, appname, port, autocommit, blocksize, use_mars, readonly, bytes_to_unicode, tz_offset, query, destination):
+def pytds_connection(data, connection_name, dsn, failover_partner, database, user, password, timeout, login_timeout, appname, autocommit, blocksize, use_mars, readonly, bytes_to_unicode, tz_offset):
     connection = pytds.connect(dsn=dsn,
                                database=database,
                                user=user,
@@ -56,14 +53,11 @@ def mssql_import(data, dsn, failover_partner, database, user, password, timeout,
                                timeout=timeout,
                                login_timeout=login_timeout,
                                appname=appname,
-                               port=port,
                                autocommit=autocommit,
                                blocksize=blocksize,
                                use_mars=use_mars,
                                readonly=readonly,
                                bytes_to_unicode=bytes_to_unicode,
                                failover_partner=failover_partner)
-    query_data = petl.fromdb(connection, query)
-    data.set(destination, query_data)
-
-command = mssql_import
+    data.values[connection_name] = connection
+command = pytds_connection
