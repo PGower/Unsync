@@ -5,7 +5,7 @@ from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
 from unsync.lib.jinja_templates import render
 
-from pycanvas.apis.users import UserAPI
+from pycanvas.apis.users import UsersAPI
 
 
 @unsync.command()
@@ -27,7 +27,7 @@ def get_user_profiles(data, url, api_key, user_data, user_id_field, destination)
 
     debug = data.config.debug
 
-    client = UserAPI(url, api_key)
+    client = UsersAPI(url, api_key)
     for user in user_data:
         try:
             r = client.get_user_profile(user[user_id_field])
