@@ -1,8 +1,11 @@
 """The CanvasUnsync data object. Passed between all commands."""
 import petl
 import click
+import logging
 from .canvas_meta import SIS_TYPES, SIS_TYPE_NAMES
 from timeit import default_timer as timer
+
+logger = logging.getLogger('unsync.data')
 
 
 class Bunch:
@@ -22,7 +25,7 @@ class UnsyncData(object):
         """Initialize the UnsyncData object. Use class methods to share data between instances."""
         if self.initialized is False:
             click.secho('Creating UnsyncData - ObjectID: {}'.format(id(self)), fg='yellow', bg='red')
-            import os,threading; 
+            import os,threading;
             click.secho('Current environment PID: {} ThreadID: {}'.format(os.getpid(), threading.current_thread().ident), fg='yellow', bg='red')
             # Setup an execution start timer.
             self.config._execution_start = timer()

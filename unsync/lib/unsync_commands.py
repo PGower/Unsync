@@ -2,9 +2,11 @@
 import click
 import os
 import imp
+import logging
 from click.decorators import _make_command
 import importlib
 from timeit import default_timer as timer
+
 
 # Code to make ipython launch whenever an exception occurs  TODO: add this into the unsync commands
 # import sys
@@ -19,6 +21,7 @@ class UnsyncCommands(click.MultiCommand):
     def __init__(self, command_dir=None, *args, **kwargs):
         """Ensure that an UnsyncData object is initialized in the root context. Replaces @pass_data for this object."""
         # kwargs['context_settings'] = {'obj': UnsyncData()}
+        self.logger = logging.getLogger('unsync.commands')
         self.command_dir = command_dir
         super(UnsyncCommands, self).__init__(*args, **kwargs)
 
@@ -70,6 +73,10 @@ class UnsyncCommands(click.MultiCommand):
 class UnsyncCommand(click.Command):
     """A custom command used in Unsync."""
 
+    def __init__(self, *args, **kwargs):
+        self.logger = logging.getLogger('unsync.command')
+        super(UnsyncCommand, self).__init__(*args, **kwargs)
+
     def invoke(self, ctx):
         start = timer()
         if ctx.obj.config.debug is True:
@@ -88,9 +95,9 @@ class UnsyncCommand(click.Command):
             end = timer()
             delta = end - start
             if delta > 3:
-                click.secho('Command took: {}'.format(end-start), fg='red')
+                click.secho('Command took: {}'.format(end - start), fg='red')
             else:
-                click.secho('Command took: {}'.format(end-start), fg='yellow')
+                click.secho('Command took: {}'.format(end - start), fg='yellow')
             click.echo('\n')
 
         return r
