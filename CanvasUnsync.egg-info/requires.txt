@@ -10,8 +10,8 @@ Jinja2==2.8
 ldap3==1.4.0
 MarkupSafe==0.23
 pathlib2==2.1.0
-petl==1.0.11
-petname==2.0
+petl
+petname
 pickleshare==0.7.4
 prompt-toolkit==1.0.9
 pyasn1==0.1.9
@@ -24,3 +24,6 @@ six==1.10.0
 traitlets==4.3.1
 wcwidth==0.1.7
 win-unicode-console==0.5
+pycanvas
+lxml
+fs

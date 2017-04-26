@@ -1,1 +1,0 @@
-"""when called store a copy of the source table in a ___diff_{source_table_name} and then .distinct and print the result. Repeat when data has changed and you should see changes."""
