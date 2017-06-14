@@ -28,9 +28,8 @@ class UnsyncCommands(click.MultiCommand):
         self.command_dir = command_dir
         super(UnsyncCommands, self).__init__(*args, **kwargs)
 
-    def _generate_command_mappings(self):
+    def _generate_command_mappings(self, quiet=False):
         """Using the currently configured sys.path setting look for packages that hold unsync commands and generate a mapping of names to actual commands."""
-        # 
         commands = {}
 
         with warnings.catch_warnings():
@@ -55,16 +54,18 @@ class UnsyncCommands(click.MultiCommand):
 
                         try:
                             package = importlib.import_module(pkg_path)
-                        except NameError as e:
-                            click.secho(f'Unable to import command package {pkg_path}', fg='red')
-                            click.secho(f'Encountered Exception: {e}')
+                        except (NameError, ModuleNotFoundError) as e:
+                            if not quiet:
+                                click.secho(f'Unable to import command package {pkg_path}', fg='red')
+                                click.secho(f'Encountered Exception: {e}')
                             continue
 
                         try:
                             command = getattr(package, command_name)
                         except AttributeError as e:
-                            click.secho(f'Unable to import command {command_name} from {pkg_path}', fg='red')
-                            click.secho(f'Encountered Exception: {e}')
+                            if not quiet:
+                                click.secho(f'Unable to import command {command_name} from {pkg_path}', fg='red')
+                                click.secho(f'Encountered Exception: {e}')
                             continue
 
                         command_display_name = getattr(command, 'display_name', command_name)
@@ -79,7 +80,7 @@ class UnsyncCommands(click.MultiCommand):
 
     def get_command(self, ctx, name):
         """Retrieve and return the command to run."""
-        command_mappings = self._generate_command_mappings()
+        command_mappings = self._generate_command_mappings(quiet=True)  # We dont need to see errors more than once.
         if name in command_mappings:
             return command_mappings[name]
         else:
