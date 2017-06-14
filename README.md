@@ -17,3 +17,14 @@ In the short term there are 3 things that I think need to happen.
    It should be possible to create an Unsync command and not have to import anything except for the unsync library.
 3. Although this tool was originally intended to be scheduled to run it does not do a good job of reporting errors. I need to create more options to catch and report errors in useful ways (email, syslog?)
 
+## Usage Example
+Once installed from pip:
+` pip install unsync
+The unsync command should be available on your path. You can either use it directly from the command line or for longer processing tasks you can incorporate it into a shell (batch) script.
+An example of such a script in windows batch might be:
+    unsync.exe --debug ^
+    csv_import -i source\user_names.csv --destination user_names ^
+    petl_select --source user_names --selector "{first_name}.startswith('d')" ^
+    csv_export --source user_names -o filtered_user_names.csv
+There are many more commands which can be used to manipulate the data and ''
+
