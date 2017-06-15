@@ -155,4 +155,4 @@ def dof9_import_dates(data, input_file,
     if room_edits_destination is not None:
         data.set(room_edits_destination, all_room_edits)
 
-command = dof9_import_dates
+dof9_import_dates.display_name = 'import_dates'
