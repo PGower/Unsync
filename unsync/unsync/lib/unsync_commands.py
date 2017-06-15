@@ -30,47 +30,64 @@ class UnsyncCommands(click.MultiCommand):
 
     def _generate_command_mappings(self, quiet=False):
         """Using the currently configured sys.path setting look for packages that hold unsync commands and generate a mapping of names to actual commands."""
-        commands = {}
+        command_map = {}
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=Warning)
-            for module_info in pkgutil.walk_packages():
-                # Only look in packages that start with unsync_
-                if module_info.name.startswith('unsync_'):
-                    a = importlib.import_module(module_info.name)
-                    
-                    # Get the prefix for the Usync command.
-                    try:
-                        prefix = a.unsync_prefix
-                    except AttributeError:
-                        prefix = module_info.name
+            module_iter = pkgutil.iter_modules()
+            if quiet is True:
+                for module_info in module_iter:
+                    module_commands = self._extract_commands_from_module(module_info, quiet)
+                    command_map.update(module_commands)
+            else:
+                module_info_list = [i for i in module_iter]
+                with click.progressbar(module_info_list, length=len(module_info_list), label='Discovering Unsync Commands') as module_iter_progress:
+                    for module_info in module_iter_progress:
+                        module_commands = self._extract_commands_from_module(module_info, quiet)
+                        command_map.update(module_commands)
 
-                    module_commands = getattr(a, 'unsync_commands', [])
-                    for command_path in module_commands:
-                        pkg_path = [module_info.name]
-                        pkg_path = pkg_path + command_path.split('.')[:-1]
-                        pkg_path = '.'.join(pkg_path)
-                        command_name = command_path.split('.')[-1:][0]
+        return command_map
 
-                        try:
-                            package = importlib.import_module(pkg_path)
-                        except (NameError, ModuleNotFoundError) as e:
-                            if not quiet:
-                                click.secho(f'Unable to import command package {pkg_path}', fg='red')
-                                click.secho(f'Encountered Exception: {e}')
-                            continue
+    def _extract_commands_from_module(self, module_info, quiet):
+        commands = {}
 
-                        try:
-                            command = getattr(package, command_name)
-                        except AttributeError as e:
-                            if not quiet:
-                                click.secho(f'Unable to import command {command_name} from {pkg_path}', fg='red')
-                                click.secho(f'Encountered Exception: {e}')
-                            continue
+        if module_info.name.startswith('unsync_'):
+            a = importlib.import_module(module_info.name)
+            
+            # Get the prefix for the Usync command.
+            try:
+                prefix = a.unsync_prefix
+            except AttributeError:
+                prefix = module_info.name
 
-                        command_display_name = getattr(command, 'display_name', command_name)
-                        commands[(f'{prefix}.{command_display_name}')] = command
-        return commands
+            module_commands = getattr(a, 'unsync_commands', [])
+            for command_path in module_commands:
+                pkg_path = [module_info.name]
+                pkg_path = pkg_path + command_path.split('.')[:-1]
+                pkg_path = '.'.join(pkg_path)
+                command_name = command_path.split('.')[-1:][0]
+
+                try:
+                    package = importlib.import_module(pkg_path)
+                except (NameError, ModuleNotFoundError) as e:
+                    if not quiet:
+                        click.secho(f'Unable to import command package {pkg_path}', fg='red')
+                        click.secho(f'Encountered Exception: {e}')
+                    continue
+
+                try:
+                    command = getattr(package, command_name)
+                except AttributeError as e:
+                    if not quiet:
+                        click.secho(f'Unable to import command {command_name} from {pkg_path}', fg='red')
+                        click.secho(f'Encountered Exception: {e}')
+                    continue
+
+                command_display_name = getattr(command, 'display_name', command_name)
+                commands[(f'{prefix}.{command_display_name}')] = command
+            return commands
+        else:
+            return commands
 
 
     def list_commands(self, ctx):
