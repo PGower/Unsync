@@ -1,19 +1,14 @@
 from __future__ import absolute_import
 
 from setuptools import setup, find_packages
-import unsync_ldap3
+import unsync_timetabler
 
-# BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-
-# PACKAGES = find_packages(os.path.join(BASE_PATH, 'unsync'))
-
-# print PACKAGES
 
 setup(
-    name='unsync_ldap3',
-    description='LDAP related commands for the Unsync tool.',
-    version=unsync_ldap3.__version__,
-    package_dir={'unsync_ldap3': 'unsync_ldap3'},
+    name='unsync_timetabler',
+    description='Commands for the Unsync tool to work with Timetabler source files (ptf9, dof9).',
+    version=unsync_timetabler.__version__,
+    package_dir={'unsync_timetabler': 'unsync_timetabler'},
     packages=find_packages(),
     # package_data={
     #     'templates': ['unsync/templates/*.*', 'unsync/templates/*'],
@@ -21,7 +16,7 @@ setup(
     # include_package_data=True,
     install_requires=[
         'unsync',
-        'ldap3',
+        'lxml'
     ],
     # entry_points={
     #     'console_scripts': [
