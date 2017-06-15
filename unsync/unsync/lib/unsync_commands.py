@@ -7,6 +7,7 @@ import warnings
 from click.decorators import _make_command
 import importlib
 from timeit import default_timer as timer
+import collections
 
 import pkgutil
 
@@ -21,11 +22,10 @@ import pkgutil
 class UnsyncCommands(click.MultiCommand):
     """A Custom MultiCommand which loads commands from individual files in the command_dir."""
 
-    def __init__(self, command_dir=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Ensure that an UnsyncData object is initialized in the root context. Replaces @pass_data for this object."""
         # kwargs['context_settings'] = {'obj': UnsyncData()}
         self.logger = logging.getLogger('unsync.commands')
-        self.command_dir = command_dir
         super(UnsyncCommands, self).__init__(*args, **kwargs)
 
     def _generate_command_mappings(self, quiet=False):
@@ -34,25 +34,32 @@ class UnsyncCommands(click.MultiCommand):
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=Warning)
-            module_iter = pkgutil.iter_modules()
+            module_iter = pkgutil.walk_packages()
             if quiet is True:
                 for module_info in module_iter:
-                    module_commands = self._extract_commands_from_module(module_info, quiet)
+                    module_commands = self._extract_commands_from_package(module_info, quiet)
                     command_map.update(module_commands)
             else:
                 module_info_list = [i for i in module_iter]
                 with click.progressbar(module_info_list, length=len(module_info_list), label='Discovering Unsync Commands') as module_iter_progress:
                     for module_info in module_iter_progress:
-                        module_commands = self._extract_commands_from_module(module_info, quiet)
+                        module_commands = self._extract_commands_from_package(module_info, quiet)
                         command_map.update(module_commands)
 
         return command_map
 
-    def _extract_commands_from_module(self, module_info, quiet):
+    def _extract_commands_from_package(self, module_info, quiet=False):
         commands = {}
 
-        if module_info.name.startswith('unsync_'):
-            a = importlib.import_module(module_info.name)
+        if module_info.name.startswith('unsync_') or module_info.name.startswith('unsync.'):
+            try:
+                a = importlib.import_module(module_info.name)
+            except Exception as e:
+                # This seems like a terrible thing to do but its the only way to ensure that Unsync can continue to function even
+                # if some of the files it wants to imort are horribly broken.
+                if not quiet:
+                    click.secho(f'\nUnable to search {module_info.name} for commands due to the raised exception: {e}\n')
+                return commands
             
             # Get the prefix for the Usync command.
             try:
@@ -61,31 +68,36 @@ class UnsyncCommands(click.MultiCommand):
                 prefix = module_info.name
 
             module_commands = getattr(a, 'unsync_commands', [])
-            for command_path in module_commands:
-                pkg_path = [module_info.name]
-                pkg_path = pkg_path + command_path.split('.')[:-1]
-                pkg_path = '.'.join(pkg_path)
-                command_name = command_path.split('.')[-1:][0]
+            if not isinstance(module_commands, collections.Iterable):
+                # its possible there is a module somewhere called unsync_commands that is going to 
+                # trip this up. This check fixes that issue.
+                return commands
+            else:
+                for command_path in module_commands:
+                    pkg_path = [module_info.name]
+                    pkg_path = pkg_path + command_path.split('.')[:-1]
+                    pkg_path = '.'.join(pkg_path)
+                    command_name = command_path.split('.')[-1:][0]
 
-                try:
-                    package = importlib.import_module(pkg_path)
-                except (NameError, ModuleNotFoundError) as e:
-                    if not quiet:
-                        click.secho(f'Unable to import command package {pkg_path}', fg='red')
-                        click.secho(f'Encountered Exception: {e}')
-                    continue
+                    try:
+                        package = importlib.import_module(pkg_path)
+                    except (NameError, ModuleNotFoundError) as e:
+                        if not quiet:
+                            click.secho(f'Unable to import command package {pkg_path}', fg='red')
+                            click.secho(f'Encountered Exception: {e}')
+                        continue
 
-                try:
-                    command = getattr(package, command_name)
-                except AttributeError as e:
-                    if not quiet:
-                        click.secho(f'Unable to import command {command_name} from {pkg_path}', fg='red')
-                        click.secho(f'Encountered Exception: {e}')
-                    continue
+                    try:
+                        command = getattr(package, command_name)
+                    except AttributeError as e:
+                        if not quiet:
+                            click.secho(f'Unable to import command {command_name} from {pkg_path}', fg='red')
+                            click.secho(f'Encountered Exception: {e}')
+                        continue
 
-                command_display_name = getattr(command, 'display_name', command_name)
-                commands[(f'{prefix}.{command_display_name}')] = command
-            return commands
+                    command_display_name = getattr(command, 'display_name', command_name)
+                    commands[(f'{prefix}.{command_display_name}')] = command
+                return commands
         else:
             return commands
 
