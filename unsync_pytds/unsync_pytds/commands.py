@@ -45,7 +45,7 @@ def validate_port(ctx, param, value):
 # @click.option('--auth-type', default=None, type=click.Choice(['NTLM', 'SSPI']), help='Alternative authentication method.')
 @click.option('--tz-offset', default=None, type=int, help='Fixed offset in minutes east from UTC.')
 @pass_data
-def pytds_connection(data, connection_name, dsn, failover_partner, database, user, password, timeout, login_timeout, appname, autocommit, blocksize, use_mars, readonly, bytes_to_unicode, tz_offset):
+def connection(data, connection_name, dsn, failover_partner, database, user, password, timeout, login_timeout, appname, autocommit, blocksize, use_mars, readonly, bytes_to_unicode, tz_offset):
     connection = pytds.connect(dsn=dsn,
                                database=database,
                                user=user,
@@ -60,4 +60,3 @@ def pytds_connection(data, connection_name, dsn, failover_partner, database, use
                                bytes_to_unicode=bytes_to_unicode,
                                failover_partner=failover_partner)
     data.values[connection_name] = connection
-command = pytds_connection
