@@ -7,8 +7,8 @@ from unsync.lib.unsync_commands import unsync
 @unsync.command()
 @click.option('--values-data', multiple=True, required=False, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Read data from a YAML file and update the data.values store. This is shared between all commands.')
 @pass_data
-def values_from_yaml(data, values_data):
-    # Process any values data given.
+def from_yaml(data, values_data):
+    """Load key value data from the provided YAML file and load it into the valstore. Existing keys with the same name will be overwritten."""
     if values_data is not None and len(values_data) >= 1:
         for values_data_file in values_data:
             with open(values_data_file, 'r') as f:
@@ -23,4 +23,12 @@ def values_from_yaml(data, values_data):
                             click.secho(f'Values data already exists for the {k} key. This will be overwritten in the current context.', fg='red')
                     data.values.update(yaml_data)
 
-command = values_from_yaml
+
+@unsync.command()
+@click.option('--output-file', '-o', required=True, type=click.Path(dir_okay=False, readable=True, resolve_path=True), help='File to export valstore data to.')
+@pass_data
+def to_yaml(data, output_file):
+    """Dump the current key value data from the valstore into the given output file in YAML format."""
+    yaml_data = yaml.dumps(data.values)
+    with open(output_file, 'w+') as f:
+        f.write(yaml_data)

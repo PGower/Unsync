@@ -19,4 +19,4 @@ def print_all_to_screen(data, offset, lines, style):
         click.secho('== {} =='.format(table), fg='green')
         click.echo(a)
 
-command = print_all_to_screen
+print_all_to_screen.display_name = 'print_all'

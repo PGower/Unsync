@@ -1,9 +1,21 @@
-"""Utility command to load a workspace from a pickle file created with the dump_workspace command."""
+"""Unsync commands that will dump or restore the entire workspace (all tables)."""
 import click
 import pickle
 
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
+
+
+@unsync.command()
+@click.option('--output-file', '-o', type=click.Path(dir_okay=False, readable=True, resolve_path=True), help='File that the pickle representation will be written to.')
+@pass_data
+def dump_workspace(data, output_file):
+    """Dump the entire workspace as a python pickle file."""
+    workspace = {}
+    for t in data.registry:
+        workspace[t] = data.get(t).listoflists()
+    with open(output_file, 'w') as f:
+        pickle.dump(workspace, f)
 
 
 @unsync.command()
@@ -16,5 +28,3 @@ def load_workspace(data, input_file, prefix):
         workspace = pickle.load(f)
     for t in workspace.keys():
         data.set('{}{}'.format(prefix, t), workspace[t])
-
-command = load_workspace

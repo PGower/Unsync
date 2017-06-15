@@ -19,4 +19,4 @@ def move_tables_to_memory(data, source):
         destination_table = petl.fromcsv(source=b)
         data.set(s, destination_table)
 
-command = move_tables_to_memory
+move_tables_to_memory.display_name = 'move_to_ram'

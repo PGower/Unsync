@@ -11,5 +11,3 @@ def shell_now(ctx):
     """Launch an IPython shell with access to the current context."""
     data = ctx.obj # noqa
     embed()
-
-command = shell_now
