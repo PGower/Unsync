@@ -1,16 +1,19 @@
 """Subclasses for the Click commands which implement custom functionality."""
 import click
 import os
-import imp
 import logging
 import warnings
 from click.decorators import _make_command
 import importlib
 from timeit import default_timer as timer
 import collections
-
+import pickle
 import pkgutil
+from datetime import datetime, timedelta
 
+
+COMMAND_CACHE_EXPIRY_DELTA = timedelta(seconds=10)
+APP_NAME = 'unsync'
 
 # Code to make ipython launch whenever an exception occurs  TODO: add this into the unsync commands
 # import sys
@@ -46,7 +49,39 @@ class UnsyncCommands(click.MultiCommand):
                         module_commands = self._extract_commands_from_package(module_info, quiet)
                         command_map.update(module_commands)
 
+        app_dir = click.get_app_dir(APP_NAME)
+
+        if not os.path.exists(app_dir):
+            # Create if it doesnt exist.
+            os.mkdir(app_dir)
+
+        with open(os.path.join(app_dir, 'command_cache.pickle'), 'wb') as f:
+            command_path_map = dict([(k, v[1]) for k,v in command_map.items()])
+            command_path_map['__generated_at__'] = datetime.now()
+            pickle.dump(command_path_map, f)
+
         return command_map
+
+    def _get_package_command(self, pkg_path, command_name, quiet=False):
+        try:
+            package = importlib.import_module(pkg_path)
+        except (NameError, ModuleNotFoundError) as e:
+            if not quiet:
+                click.secho(f'Unable to import command package {pkg_path}', fg='red')
+                click.secho(f'Encountered Exception: {e}')
+            return None
+
+        try:
+            command = getattr(package, command_name)
+        except AttributeError as e:
+            if not quiet:
+                click.secho(f'Unable to import command {command_name} from {pkg_path}', fg='red')
+                click.secho(f'Encountered Exception: {e}')
+            return None
+
+        command_display_name = getattr(command, 'display_name', command_name)
+        return (command_display_name, command)
+
 
     def _extract_commands_from_package(self, module_info, quiet=False):
         commands = {}
@@ -78,25 +113,14 @@ class UnsyncCommands(click.MultiCommand):
                     pkg_path = pkg_path + command_path.split('.')[:-1]
                     pkg_path = '.'.join(pkg_path)
                     command_name = command_path.split('.')[-1:][0]
+                    full_command_path = pkg_path + '.' + command_name
 
                     try:
-                        package = importlib.import_module(pkg_path)
-                    except (NameError, ModuleNotFoundError) as e:
-                        if not quiet:
-                            click.secho(f'Unable to import command package {pkg_path}', fg='red')
-                            click.secho(f'Encountered Exception: {e}')
+                        command_display_name, command = self._get_package_command(pkg_path, command_name, quiet)
+                    except TypeError:
                         continue
 
-                    try:
-                        command = getattr(package, command_name)
-                    except AttributeError as e:
-                        if not quiet:
-                            click.secho(f'Unable to import command {command_name} from {pkg_path}', fg='red')
-                            click.secho(f'Encountered Exception: {e}')
-                        continue
-
-                    command_display_name = getattr(command, 'display_name', command_name)
-                    commands[(f'{prefix}.{command_display_name}')] = command
+                    commands[(f'{prefix}.{command_display_name}')] = (command, full_command_path)
                 return commands
         else:
             return commands
@@ -109,11 +133,35 @@ class UnsyncCommands(click.MultiCommand):
 
     def get_command(self, ctx, name):
         """Retrieve and return the command to run."""
-        command_mappings = self._generate_command_mappings(quiet=True)  # We dont need to see errors more than once.
-        if name in command_mappings:
-            return command_mappings[name]
-        else:
-            click.secho(f'Unable to find command: {name}', fg='red')
+        try:
+            # If they exist try to load the command_cache, this can save us alot of time.
+            app_dir = click.get_app_dir(APP_NAME)
+            with open(os.path.join(app_dir, 'command_cache.pickle'), 'rb') as f:
+                command_path_mappings = pickle.load(f)
+
+            # Check the command_cache age, if its too old, walk packages to discover commands again
+            command_cache_generated_at = command_path_mappings['__generated_at__']
+            command_cache_delta = datetime.now() - command_cache_generated_at
+            if command_cache_delta > COMMAND_CACHE_EXPIRY_DELTA:
+                click.secho(f'Command cache has expired, it is {command_cache_delta} seconds old. Regenerating.',fg='green')
+                raise ExpiredCommandCacheError()
+
+            # Try to turn the path into an actual command
+            if name in command_path_mappings:
+                full_command_path = command_path_mappings[name]
+                pkg_path = '.'.join(full_command_path.split('.')[:-1])
+                command_name = full_command_path.split('.')[-1]
+                try:
+                    command_display_name, command = self._get_package_command(pkg_path, command_name)
+                    return command
+                except TypeError:
+                    click.secho(f'Unable to find command: {name}', fg='red')
+        except (FileNotFoundError, IOError, ExpiredCommandCacheError):
+            command_mappings = self._generate_command_mappings(quiet=True)  # We dont need to see errors more than once.
+            if name in command_mappings:
+                return command_mappings[name][0]
+            else:
+                click.secho(f'Unable to find command: {name}', fg='red')
 
 
 class UnsyncCommand(click.Command):
@@ -174,3 +222,8 @@ def add_options(options):
             func = option(func)
         return func
     return _add_options
+
+
+class ExpiredCommandCacheError(Exception):
+    """Raised when the command cache __generated_at__ value is too far in the past."""
+    pass
