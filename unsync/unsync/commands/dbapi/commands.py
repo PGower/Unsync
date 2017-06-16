@@ -35,3 +35,7 @@ def db_import(data, connection_name, query, destination):
     data.set(destination, query_data)
 
 db_import.display_name = 'import'
+
+# TODO: callproc
+
+
