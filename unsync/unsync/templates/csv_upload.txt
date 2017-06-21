@@ -1,0 +1,15 @@
+===============   Data Set Info   =============================================
+New Data Set Created: {{data_set_name}}
+Data Set Location: {{data_set_path}}
+Canvas Data Files Uploaded: {{','.join(used_data_tables)}}
+
+===============   Job Info   ==================================================
+Data Succesfully Uploaded - Upload ID: {{id}}
+State: {{workflow_state}}   Progress: {{progress}}%
+Updated At: {{updated_at}}
+Started: {{started_at}}     Finished: {{ended_at}}
+
+===============   Options   ===================================================
+Override SIS Stickiness: {{override_sis_stickiness}}
+Add SIS Stickiness: {{add_sis_stickiness}}
+Clear SIS Stickiness: {{clear_sis_stickiness}}

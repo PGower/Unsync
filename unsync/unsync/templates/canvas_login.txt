@@ -1,0 +1,13 @@
+Login for {{unique_id}} - Login ID: {{id}}
+================================================
+Account ID: {{account_id}}
+
+Canvas User ID: {{user_id}}
+SIS User ID: {{sis_user_id}}
+Integration ID: {{integration_id}}
+Unique ID / Login: {{unique_id}}
+
+Authentication Provider: {{authentication_provider_id}}
+================================================
+================================================
+
