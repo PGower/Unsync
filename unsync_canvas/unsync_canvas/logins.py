@@ -6,6 +6,7 @@ from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
 import petl
 
+
 @unsync.command()
 @click.option('--url', required=True, help='Canvas instance to use. Usually something like <schoolname>.instructure.com.')
 @click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
@@ -18,7 +19,7 @@ import petl
 @click.option('--integration-id-field', help='The field containing the new integration_id for the user. If not specified this will be skipped. If specified but the value is None will be skipped for that user.')
 @click.option('--results-table', default="_results", help='Data table that will be filled with the results of the edit logins operation.')
 @pass_data
-def edit_user_logins(data, url, api_key, source, account_id_field, login_id_field, unique_id_field, password_field, sis_user_id_field, integration_id_field, results_table):
+def update_user_logins(data, url, api_key, source, account_id_field, login_id_field, unique_id_field, password_field, sis_user_id_field, integration_id_field, results_table):
     if not url.startswith('http') or not url.startswith('https'):
         url = 'https://' + url
 
@@ -56,7 +57,7 @@ def edit_user_logins(data, url, api_key, source, account_id_field, login_id_fiel
 
             if debug:
                 click.secho(str(r), fg='yellow')
-        except (CanvasAPIError)  as e:
+        except (CanvasAPIError) as e:
             click.secho('Failed updating login: {} with data: {}'.format(login_id, str(kwargs)), fg='red')
             click.secho('Response Status: {} Response Reason: {}'.format(e.response.status_code, e.response.content), fg='red')
 
@@ -69,4 +70,52 @@ def edit_user_logins(data, url, api_key, source, account_id_field, login_id_fiel
     results = petl.fromdicts(results)
     data.cat(results_table, results)
 
-command = edit_user_logins
+
+@unsync.command()
+@click.option('--url', required=True, help='Canvas instance to use. Usually something like <schoolname>.instructure.com.')
+@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@click.option('--account-id', default=1, help='The Canvas account to access. This is usually the main account.')
+@click.option('--destination', '-d', required=True, help='The destination data table for the retieved data.')
+@pass_data
+def get_account_logins(data, url, api_key, account_id, destination):
+    if not url.startswith('http') or not url.startswith('https'):
+        url = 'https://' + url
+
+    client = LoginsAPI(url, api_key)
+    r = client.list_user_logins_accounts(account_id)
+    d = petl.fromdicts(r)
+    data.set(destination, d)
+
+
+@unsync.command()
+@click.option('--url', required=True, help='Canvas instance to use. Usually something like <schoolname>.instructure.com.')
+@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@click.option('--user-data', required=True, help='Name of a data table containing Canvas user IDs')
+@click.option('--user-id-field', required=True, default='id', help='Name of the column that contains Canvas user IDs')
+@click.option('--destination', '-d', required=True, help='The destination table for all retrieved data.')
+@pass_data
+def get_user_logins(data, url, api_key, user_data, user_id_field, destination):
+
+    if not url.startswith('http') or not url.startswith('https'):
+        url = 'https://' + url
+
+    user_data = data.get(user_data)
+    user_data = user_data.dicts()
+
+    login_data = []
+
+    debug = data.config.debug
+
+    client = LoginsAPI(url, api_key)
+    for user in user_data:
+        try:
+            r = client.list_user_logins_users(user[user_id_field])
+            if debug:
+                click.secho('Retrieved {} Canvas Logins for Canvas User ID: {}'.format(len(r), user[user_id_field]), fg='green')
+        except CanvasAPIError:
+            click.secho('Unable to retrieve Canvas Login information for Canvas User ID: {}'.format(user[user_id_field]), fg='red')
+        for login in r:
+            login_data.append(login)
+
+    login_data = petl.fromdicts(login_data)
+    data.set(destination, login_data)

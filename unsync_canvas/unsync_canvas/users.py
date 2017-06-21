@@ -31,7 +31,6 @@ def get_user_profiles(data, url, api_key, user_data, user_id_field, destination)
     for user in user_data:
         try:
             r = client.get_user_profile(user[user_id_field])
-            import pdb;pdb.set_trace()
             profile_data.append(r)
             if debug:
                 click.secho('Retrieved Profile for Canvas User ID: {}'.format(len(r), user[user_id_field]), fg='green')
@@ -41,4 +40,18 @@ def get_user_profiles(data, url, api_key, user_data, user_id_field, destination)
     profile_data = petl.fromdicts(profile_data)
     data.set(destination, profile_data)
 
-command = get_user_profiles
+
+@unsync.command()
+@click.option('--url', required=True, help='Canvas instance to use. Usually something like <schoolname>.instructure.com.')
+@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@click.option('--account-id', default=1, help='The Canvas account to access. This is usually the main account.')
+@click.option('--search-term', help='If provided narrow returned results using the search-term.')
+@click.option('--destination', '-d', required=True, help='Table to store retrieved data in.')
+@pass_data
+def list_account_users(data, url, api_key, account_id, search_term, destination):
+    if not url.startswith('http') or not url.startswith('https'):
+        url = 'https://' + url
+
+    client = UsersAPI(url, api_key)
+    r = client.list_users_in_account(account_id, search_term)
+    data.cat(destination, petl.fromdicts(r))

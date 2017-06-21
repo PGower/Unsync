@@ -14,7 +14,7 @@ from unsync.lib.unsync_commands import unsync
 @click.option('--state', default="all", type=click.Choice(["active", "deleted", "all"]), help='Only list Terms with the given state.')
 @click.option('--destination', '-d', required=True, help='The destination table to store the list of terms.')
 @pass_data
-def list_terms(data, url, api_key, account_id, state, destination):
+def get_enrollment_terms(data, url, api_key, account_id, state, destination):
     if not url.startswith('http') or not url.startswith('https'):
         url = 'https://' + url
 
@@ -27,5 +27,3 @@ def list_terms(data, url, api_key, account_id, state, destination):
 
     term_data = petl.fromdicts(term_data)
     data.cat(destination, term_data)
-
-command = list_terms

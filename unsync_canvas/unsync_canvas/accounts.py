@@ -1,11 +1,79 @@
-"""Update accounts information."""
+"""Canvas Accounts API commands for the Unsync Tool."""
 
 import click
 
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
+# from unsync.lib.unsync_option import UnsyncOption
 
 from pycanvas.apis.accounts import AccountsAPI
+
+import petl
+
+
+@unsync.command()
+@click.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
+@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@click.option('--account-id', required=True, type=int, default=1, help='The Canvas Account to search for courses in.')
+@click.option('--recursive/--no-recursive', default=False, help='Recursively search for sub accounts.')
+@click.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
+@pass_data
+def get_sub_accounts_of_account(data, url, api_key, account_id, recursive, destination):
+    """Import Canvas courses via the REST API and store it in the destination data table."""
+    client = AccountsAPI(url, api_key)
+    r = client.get_sub_accounts_of_account(account_id, recursive)
+    d = petl.fromdicts(r)
+    data.set(destination, d)
+
+
+@unsync.command()
+@click.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
+@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@click.option('--include', multiple=True, type=click.Choice(['lti_guid', 'registration_settings', 'services']), help='Additional information to include in the API response.')
+@click.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
+@pass_data
+def get_accounts(data, url, api_key, include, destination):
+    """List accounts visible to the currently logged on user. Only returns data if the user is an account admin."""
+    client = AccountsAPI(url, api_key)
+    r = client.list_accounts(include)
+    d = petl.fromdicts(r)
+    data.set(destination, d)
+
+
+@unsync.command()
+@click.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
+@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@click.option('--account-id', type=int, default=1, help='The Canvas Account to search for courses in.')
+@click.option('--by-subaccounts', type=int, multiple=True, default=None, help='Only return courses which are part of the given subaccount ids.')
+@click.option('--by-teachers', type=int, multiple=True, default=None, help='Only return courses which are taught by the given teacher ids.')
+@click.option('--completed/--no-completed', default=None, help='If present and true only return courses whose state is completed. If false exclude completed courses.')
+@click.option('--enrollment-term-id', default=None, help='If given only return courses from the given term.')
+@click.option('--enrollment-type', default=None, type=click.Choice(["teacher", "student", "ta", "observer", "designer"]), help='Only return courses with at least one of the given enrollments.')
+@click.option('--hide-enrollmentless-courses/--no-hide-enrollmentless-courses', default=None)
+@click.option('--include', type=click.Choice(["syllabus_body", "term", "course_progress", "storage_quota_used_mb", "total_students", "teachers"]))
+@click.option('--published/--no-published', default=None)
+@click.option('--search_term', default=None, type=str)
+@click.option('--state', default=None, type=click.Choice(["created", "claimed", "available", "completed", "deleted", "all"]))
+@click.option('--with-enrollments/--no-with-enrollments', default=None)
+@click.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
+@pass_data
+def get_courses(data, url, api_key, account_id, by_subaccounts, by_teachers, completed, enrollment_term_id, enrollment_type, hide_enrollmentless_courses, include, published, search_term, state, with_enrollments, destination):
+    """Import Canvas courses via the REST API and store it in the destination data table."""
+    client = AccountsAPI(url, api_key)
+    r = client.list_active_courses_in_account(account_id,
+                                              by_subaccounts=by_subaccounts,
+                                              by_teachers=by_teachers,
+                                              completed=completed,
+                                              enrollment_term_id=enrollment_term_id,
+                                              enrollment_type=enrollment_type,
+                                              hide_enrollmentless_courses=hide_enrollmentless_courses,
+                                              include=include,
+                                              published=published,
+                                              search_term=search_term,
+                                              state=state,
+                                              with_enrollments=with_enrollments)
+    d = petl.fromdicts(r)
+    data.set(destination, d)
 
 
 @unsync.command()
@@ -29,23 +97,23 @@ from pycanvas.apis.accounts import AccountsAPI
 @click.option('--settings-restrict-student-past-view-locked-field', default='settings_restrict_student_past_view_locked', help='Table field containing the settings_restrict_student_past_view_locked data.')
 @click.option('--settings-restrict-student-past-view-value-field', default='settings_restrict_student_past_view_value', help='Table field containing the settings_restrict_student_past_view_value data.')
 @pass_data
-def canvas_list_accounts(data, url, api_key, source,
-                         account_id_field,
-                         default_group_storage_quota_mb_field,
-                         default_storage_quota_mb_field,
-                         default_time_zone_field,
-                         default_user_storage_quota_mb_field,
-                         name_field,
-                         sis_account_id_field,
-                         services_field,
-                         settings_lock_all_announcements_locked_field,
-                         settings_lock_all_announcements_value_field,
-                         settings_restrict_student_future_listing_locked_field,
-                         settings_restrict_student_future_listing_value_field,
-                         settings_restrict_student_future_view_locked_field,
-                         settings_restrict_student_future_view_value_field,
-                         settings_restrict_student_past_view_locked_field,
-                         settings_restrict_student_past_view_value_field):
+def update_accounts(data, url, api_key, source,
+                    account_id_field,
+                    default_group_storage_quota_mb_field,
+                    default_storage_quota_mb_field,
+                    default_time_zone_field,
+                    default_user_storage_quota_mb_field,
+                    name_field,
+                    sis_account_id_field,
+                    services_field,
+                    settings_lock_all_announcements_locked_field,
+                    settings_lock_all_announcements_value_field,
+                    settings_restrict_student_future_listing_locked_field,
+                    settings_restrict_student_future_listing_value_field,
+                    settings_restrict_student_future_view_locked_field,
+                    settings_restrict_student_future_view_value_field,
+                    settings_restrict_student_past_view_locked_field,
+                    settings_restrict_student_past_view_value_field):
     """Update accounts using information supplied from a table."""
     client = AccountsAPI(url, api_key)
     data_source = data.get(source)
@@ -128,6 +196,3 @@ def canvas_list_accounts(data, url, api_key, source,
             kwargs['account_settings_restrict_student_past_view_value'] = row[settings_restrict_student_past_view_value_field]
 
         r = client.update_account(row[account_id_field], **kwargs)
-        import pdb; pdb.set_trace()
-
-command = canvas_list_accounts
