@@ -1,6 +1,4 @@
-"""Utility command to dump the workspace to a file using python pickle."""
 import click
-import pickle
 
 from unsync.lib.unsync_data import pass_data
 from unsync.lib.unsync_commands import unsync
@@ -20,12 +18,6 @@ REQUIRED_SCOPES = [
 @click.option('--apps-domain', required=True, help='The Google Apps domain name.')
 @click.option('--')
 @pass_data
-def get_groups(data, output_file):
+def list_groups(data, output_file):
     """Query the Google Apps domain and retrieve group information."""
-    workspace = {}
-    for t in data.registry:
-        workspace[t] = data.get(t).listoflists()
-    with open(output_file, 'w') as f:
-        pickle.dump(workspace, f)
-
-command = get_groups
+    pass
