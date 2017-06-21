@@ -5,7 +5,7 @@ import unsync_petl
 
 
 setup(
-    name='Unsync PETL',
+    name='unsync_petl',
     description='PETL Library commands for the Unsync Tool.',
     version=unsync_petl.__version__,
     package_dir={'unsync_petl': 'unsync_petl'},
