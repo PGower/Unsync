@@ -10,17 +10,9 @@ setup(
     version=unsync_timetabler.__version__,
     package_dir={'unsync_timetabler': 'unsync_timetabler'},
     packages=find_packages(),
-    # package_data={
-    #     'templates': ['unsync/templates/*.*', 'unsync/templates/*'],
-    # },
-    # include_package_data=True,
     install_requires=[
         'unsync',
-        'lxml'
+        'lxml',
+        'petl'
     ],
-    # entry_points={
-    #     'console_scripts': [
-    #         'unsync=unsync.command:cli',
-    #     ]
-    # }
 )
