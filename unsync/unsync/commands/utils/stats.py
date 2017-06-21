@@ -13,4 +13,3 @@ def stats(data, source):
     click.secho('Row Count: {}'.format(d.nrows()), fg='green')
     click.secho('Column Count: {}'.format(len(d[0])), fg='green')
 
-command = stats
