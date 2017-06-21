@@ -10,17 +10,8 @@ setup(
     version=unsync_fs.__version__,
     package_dir={'unsync_fs': 'unsync_fs'},
     packages=find_packages(),
-    # package_data={
-    #     'templates': ['unsync/templates/*.*', 'unsync/templates/*'],
-    # },
-    # include_package_data=True,
     install_requires=[
         'unsync',
         'fs'
     ],
-    # entry_points={
-    #     'console_scripts': [
-    #         'unsync=unsync.command:cli',
-    #     ]
-    # }
 )
