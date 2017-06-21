@@ -42,3 +42,6 @@ def ldap_import(data, connection_name, base_ou, query, attributes, destination):
     data.set(destination, query_results)
 
 ldap_import.display_name = 'import'
+
+
+# TODO: Add commands to CREATE / UPDATE and DELETE.
