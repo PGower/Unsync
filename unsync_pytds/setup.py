@@ -10,17 +10,8 @@ setup(
     version=unsync_pytds.__version__,
     package_dir={'unsync_pytds': 'unsync_pytds'},
     packages=find_packages(),
-    # package_data={
-    #     'templates': ['unsync/templates/*.*', 'unsync/templates/*'],
-    # },
-    # include_package_data=True,
     install_requires=[
         'unsync',
         'python-tds',
     ],
-    # entry_points={
-    #     'console_scripts': [
-    #         'unsync=unsync.command:cli',
-    #     ]
-    # }
 )

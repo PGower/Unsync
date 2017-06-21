@@ -6,7 +6,6 @@ from unsync.lib.unsync_commands import unsync
 
 import click
 import pytds
-import petl
 
 
 def validate_port(ctx, param, value):
@@ -46,6 +45,7 @@ def validate_port(ctx, param, value):
 @click.option('--tz-offset', default=None, type=int, help='Fixed offset in minutes east from UTC.')
 @pass_data
 def connection(data, connection_name, dsn, failover_partner, database, user, password, timeout, login_timeout, appname, autocommit, blocksize, use_mars, readonly, bytes_to_unicode, tz_offset):
+    """Generate and store a PyTDS connection object in the valstore. Can be used with the generic dbapi commands to retrieve data."""
     connection = pytds.connect(dsn=dsn,
                                database=database,
                                user=user,
