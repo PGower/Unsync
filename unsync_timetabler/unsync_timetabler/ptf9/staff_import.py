@@ -1,16 +1,11 @@
 """Timetabler PTF9 import functions."""
-from __future__ import absolute_import
-import click
+import unsync
 import petl
-
-from unsync.lib.unsync_data import pass_data
-from unsync.lib.unsync_commands import unsync
 
 
 @unsync.command()
-@click.option('--input-file', '-i', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Timetabler PTF9 file to extract data from.')
-@click.option('--destination', '-d', default='users', help='The destination table that these users will be stored in.')
-@pass_data
+@unsync.option('--input-file', '-i', type=unsync.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Timetabler PTF9 file to extract data from.')
+@unsync.option('--destination', '-d', default='users', help='The destination table that these users will be stored in.')
 def ptf9_staff_import(data, input_file, destination):
     """Import staff users from a Timetabler PTF9 export file."""
     staff_users = petl.fromxml(input_file, '{http://www.timetabling.com.au/TDV9}Teachers/{http://www.timetabling.com.au/TDV9}Teacher',

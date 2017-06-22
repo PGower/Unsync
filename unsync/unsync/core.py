@@ -441,10 +441,10 @@ def option(*param_decls, **attrs):
 def command(name=None, cls=UnsyncCommand, **attrs):
     
     def cmd_decorator(f):
-        cmd = _make_command(f, name, attrs, cls)
-        cmd_with_data = pass_data(cmd)
-        cmd_with_data.__doc__ = f.__doc__
-        return cmd_with_data
+        cmd_with_data = pass_data(f)
+        cmd = _make_command(cmd_with_data, name, attrs, cls)
+        cmd.__doc__ = f.__doc__
+        return cmd
     return cmd_decorator
 
 

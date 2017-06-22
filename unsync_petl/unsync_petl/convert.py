@@ -1,8 +1,6 @@
 """PETL Convert Command."""
-import click
+import unsync
 import re
-from unsync.lib.unsync_data import pass_data
-from unsync.lib.unsync_commands import unsync
 
 
 def this_expr(s):
@@ -28,10 +26,9 @@ def this_expr(s):
 
 
 @unsync.command()
-@click.option('--source', '-s', required=True, help='Name of the source data table.')
-@click.option('--field', '-f', required=True, help='Name of the new field.')
-@click.option('--value', '-v', required=True, help='Either a static value or a string that can be evaluated by petl.expr')
-@pass_data
+@unsync.option('--source', '-s', required=True, help='Name of the source data table.')
+@unsync.option('--field', '-f', required=True, help='Name of the new field.')
+@unsync.option('--value', '-v', required=True, help='Either a static value or a string that can be evaluated by petl.expr')
 def convert(data, source, field, value):
     """Convert the given field using the given value. Value is compiled to a lambda by prepending with lambda v, rec: and replacing curly bracket fieldnames with appropriate lookups."""
     s = data.get(source)

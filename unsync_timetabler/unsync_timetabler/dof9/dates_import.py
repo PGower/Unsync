@@ -1,28 +1,24 @@
 """Timetabler DOF9 import functions."""
-import click
+import unsync
 import petl
-
-from unsync.lib.unsync_data import pass_data
-from unsync.lib.unsync_commands import unsync
 
 import lxml
 
 
 @unsync.command()
-@click.option('--input-file', '-i', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Timetabler DOF9 file to extract data from.', required=True)
-@click.option('--teacher-absences-destination', help="The destination table that all teacher_absences data will be saved to.")
-@click.option('--period-replacements-destination', help="The destination table that all period_replacements data will be saved to.")
-@click.option('--emergency-teacher-availables-destination', help="The destination table that all emergency_teacher_availables data will be saved to.")
-@click.option('--emergency-teacher-yard-duty-available-destination', help="The destination table that all emergency_teacher_yard_duty_available data will be saved to.")
-@click.option('--yard-duty-replacements-destination', help="The destination table that all yard_duty_replacements data will be saved to.")
-@click.option('--room-replacements-destination', help="The destination table that all room_replacements data will be saved to.")
-@click.option('--room-edits-destination', help="The destination table that all room_edits data will be saved to.")
-@click.option('--lesson-cancellations-destination', help="The destination table that all lesson_cancellations data will be saved to.")
-@click.option('--yard-duty-cancellations-destination', help="The destination table that all yard_duty_cancellations data will be saved to.")
-@click.option('--load-adjustments-destination', help="The destination table that all load_adjustments data will be saved to.")
-@click.option('--room-availables-destination', help="The destination table that all room_availables data will be saved to.")
-@click.option('--attendence-changes-destination', help="The destination table that all attendence_changes data will be saved to.")
-@pass_data
+@unsync.option('--input-file', '-i', type=unsync.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Timetabler DOF9 file to extract data from.', required=True)
+@unsync.option('--teacher-absences-destination', help="The destination table that all teacher_absences data will be saved to.")
+@unsync.option('--period-replacements-destination', help="The destination table that all period_replacements data will be saved to.")
+@unsync.option('--emergency-teacher-availables-destination', help="The destination table that all emergency_teacher_availables data will be saved to.")
+@unsync.option('--emergency-teacher-yard-duty-available-destination', help="The destination table that all emergency_teacher_yard_duty_available data will be saved to.")
+@unsync.option('--yard-duty-replacements-destination', help="The destination table that all yard_duty_replacements data will be saved to.")
+@unsync.option('--room-replacements-destination', help="The destination table that all room_replacements data will be saved to.")
+@unsync.option('--room-edits-destination', help="The destination table that all room_edits data will be saved to.")
+@unsync.option('--lesson-cancellations-destination', help="The destination table that all lesson_cancellations data will be saved to.")
+@unsync.option('--yard-duty-cancellations-destination', help="The destination table that all yard_duty_cancellations data will be saved to.")
+@unsync.option('--load-adjustments-destination', help="The destination table that all load_adjustments data will be saved to.")
+@unsync.option('--room-availables-destination', help="The destination table that all room_availables data will be saved to.")
+@unsync.option('--attendence-changes-destination', help="The destination table that all attendence_changes data will be saved to.")
 def dof9_import_dates(data, input_file,
                       teacher_absences_destination,
                       period_replacements_destination,
