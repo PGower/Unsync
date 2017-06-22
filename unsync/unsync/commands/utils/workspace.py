@@ -1,14 +1,10 @@
 """Unsync commands that will dump or restore the entire workspace (all tables)."""
-import click
+import unsync
 import pickle
-
-from unsync.lib.unsync_data import pass_data
-from unsync.lib.unsync_commands import unsync
 
 
 @unsync.command()
-@click.option('--output-file', '-o', type=click.Path(dir_okay=False, readable=True, resolve_path=True), help='File that the pickle representation will be written to.')
-@pass_data
+@unsync.option('--output-file', '-o', type=unsync.Path(dir_okay=False, readable=True, resolve_path=True), help='File that the pickle representation will be written to.')
 def dump_workspace(data, output_file):
     """Dump the entire workspace as a python pickle file."""
     workspace = {}
@@ -19,9 +15,8 @@ def dump_workspace(data, output_file):
 
 
 @unsync.command()
-@click.option('--input-file', '-i', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Workspace file that will be read.')
-@click.option('--prefix', default='', help='Prefix to apply to table names when they are loaded from the workspace file.')
-@pass_data
+@unsync.option('--input-file', '-i', type=unsync.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help='Workspace file that will be read.')
+@unsync.option('--prefix', default='', help='Prefix to apply to table names when they are loaded from the workspace file.')
 def load_workspace(data, input_file, prefix):
     """Load the workspace from a file created with dump_workspace."""
     with open(input_file, 'r') as f:

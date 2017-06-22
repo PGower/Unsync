@@ -1,6 +1,6 @@
 import click  # noqa
-from unsync.lib.unsync_commands import UnsyncCommands  # noqa
-from unsync.lib.unsync_data import pass_data  # noqa
+from unsync.core import pass_data
+from unsync.core import UnsyncCommands
 
 
 @click.group(cls=UnsyncCommands, chain=True, help='Unsync Commands')
