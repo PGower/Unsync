@@ -1,7 +1,7 @@
 """Launch an iPython shell with access to the current context."""
 
 from IPython import embed
-from unsync.lib.unsync_commands import unsync
+import unsync
 import click
 
 

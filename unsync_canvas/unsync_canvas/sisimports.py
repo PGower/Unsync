@@ -1,10 +1,6 @@
-import click
+import unsync
 
 from pycanvas.apis.sis_imports import SisImportsAPI
-
-from unsync.lib.unsync_data import pass_data
-from unsync.lib.unsync_commands import unsync
-from unsync.lib.jinja_templates import render
 
 from datetime import datetime, timedelta
 
@@ -12,15 +8,14 @@ import petl
 
 
 @unsync.command()
-@click.option('--url', required=True, help='Canvas instance to use. Usually something like <schoolname>.instructure.com.')
-@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
-@click.option('--account-id', default=1, help='The Canvas account to access. This is usually the main account.')
-@click.option('--created-since', default=(datetime.now() - timedelta(hours=12)), help='Filter imports shown to only those created since the given time.')
-@click.option('--destination', '-d', required=True, help='The data table to store the results in.')
-@click.option('--include-errors/--no-include-errors', default=False, help='Weather to include the full content of the processing_errors field.')
-@click.option('--include-warnings/--no-include-warnings', default=False, help='Include the full content of the processing_warnings field.')
-@click.option('--flatten-data/--no-flatten-data', default=True, help='Flatten the data field of the response.')
-@pass_data
+@unsync.option('--url', required=True, help='Canvas instance to use. Usually something like <schoolname>.instructure.com.')
+@unsync.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@unsync.option('--account-id', default=1, help='The Canvas account to access. This is usually the main account.')
+@unsync.option('--created-since', default=(datetime.now() - timedelta(hours=12)), help='Filter imports shown to only those created since the given time.')
+@unsync.option('--destination', '-d', required=True, help='The data table to store the results in.')
+@unsync.option('--include-errors/--no-include-errors', default=False, help='Weather to include the full content of the processing_errors field.')
+@unsync.option('--include-warnings/--no-include-warnings', default=False, help='Include the full content of the processing_warnings field.')
+@unsync.option('--flatten-data/--no-flatten-data', default=True, help='Flatten the data field of the response.')
 def list_imports(data, url, api_key, account_id, created_since, destination, include_errors, include_warnings, flatten_data):
     if not url.startswith('http') or not url.startswith('https'):
         url = 'https://' + url

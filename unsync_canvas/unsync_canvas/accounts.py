@@ -1,10 +1,6 @@
 """Canvas Accounts API commands for the Unsync Tool."""
 
-import click
-
-from unsync.lib.unsync_data import pass_data
-from unsync.lib.unsync_commands import unsync
-# from unsync.lib.unsync_option import UnsyncOption
+import unsync
 
 from pycanvas.apis.accounts import AccountsAPI
 
@@ -12,12 +8,11 @@ import petl
 
 
 @unsync.command()
-@click.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
-@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
-@click.option('--account-id', required=True, type=int, default=1, help='The Canvas Account to search for courses in.')
-@click.option('--recursive/--no-recursive', default=False, help='Recursively search for sub accounts.')
-@click.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
-@pass_data
+@unsync.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
+@unsync.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@unsync.option('--account-id', required=True, type=int, default=1, help='The Canvas Account to search for courses in.')
+@unsync.option('--recursive/--no-recursive', default=False, help='Recursively search for sub accounts.')
+@unsync.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
 def get_sub_accounts_of_account(data, url, api_key, account_id, recursive, destination):
     """Import Canvas courses via the REST API and store it in the destination data table."""
     client = AccountsAPI(url, api_key)
@@ -27,11 +22,10 @@ def get_sub_accounts_of_account(data, url, api_key, account_id, recursive, desti
 
 
 @unsync.command()
-@click.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
-@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
-@click.option('--include', multiple=True, type=click.Choice(['lti_guid', 'registration_settings', 'services']), help='Additional information to include in the API response.')
-@click.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
-@pass_data
+@unsync.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
+@unsync.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@unsync.option('--include', multiple=True, type=unsync.Choice(['lti_guid', 'registration_settings', 'services']), help='Additional information to include in the API response.')
+@unsync.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
 def get_accounts(data, url, api_key, include, destination):
     """List accounts visible to the currently logged on user. Only returns data if the user is an account admin."""
     client = AccountsAPI(url, api_key)
@@ -41,22 +35,21 @@ def get_accounts(data, url, api_key, include, destination):
 
 
 @unsync.command()
-@click.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
-@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
-@click.option('--account-id', type=int, default=1, help='The Canvas Account to search for courses in.')
-@click.option('--by-subaccounts', type=int, multiple=True, default=None, help='Only return courses which are part of the given subaccount ids.')
-@click.option('--by-teachers', type=int, multiple=True, default=None, help='Only return courses which are taught by the given teacher ids.')
-@click.option('--completed/--no-completed', default=None, help='If present and true only return courses whose state is completed. If false exclude completed courses.')
-@click.option('--enrollment-term-id', default=None, help='If given only return courses from the given term.')
-@click.option('--enrollment-type', default=None, type=click.Choice(["teacher", "student", "ta", "observer", "designer"]), help='Only return courses with at least one of the given enrollments.')
-@click.option('--hide-enrollmentless-courses/--no-hide-enrollmentless-courses', default=None)
-@click.option('--include', type=click.Choice(["syllabus_body", "term", "course_progress", "storage_quota_used_mb", "total_students", "teachers"]))
-@click.option('--published/--no-published', default=None)
-@click.option('--search_term', default=None, type=str)
-@click.option('--state', default=None, type=click.Choice(["created", "claimed", "available", "completed", "deleted", "all"]))
-@click.option('--with-enrollments/--no-with-enrollments', default=None)
-@click.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
-@pass_data
+@unsync.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
+@unsync.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@unsync.option('--account-id', type=int, default=1, help='The Canvas Account to search for courses in.')
+@unsync.option('--by-subaccounts', type=int, multiple=True, default=None, help='Only return courses which are part of the given subaccount ids.')
+@unsync.option('--by-teachers', type=int, multiple=True, default=None, help='Only return courses which are taught by the given teacher ids.')
+@unsync.option('--completed/--no-completed', default=None, help='If present and true only return courses whose state is completed. If false exclude completed courses.')
+@unsync.option('--enrollment-term-id', default=None, help='If given only return courses from the given term.')
+@unsync.option('--enrollment-type', default=None, type=unsync.Choice(["teacher", "student", "ta", "observer", "designer"]), help='Only return courses with at least one of the given enrollments.')
+@unsync.option('--hide-enrollmentless-courses/--no-hide-enrollmentless-courses', default=None)
+@unsync.option('--include', type=unsync.Choice(["syllabus_body", "term", "course_progress", "storage_quota_used_mb", "total_students", "teachers"]))
+@unsync.option('--published/--no-published', default=None)
+@unsync.option('--search_term', default=None, type=str)
+@unsync.option('--state', default=None, type=unsync.Choice(["created", "claimed", "available", "completed", "deleted", "all"]))
+@unsync.option('--with-enrollments/--no-with-enrollments', default=None)
+@unsync.option('--destination', '-d', required=True, help='The destination table that imported Canvas course data will be stored in.')
 def get_courses(data, url, api_key, account_id, by_subaccounts, by_teachers, completed, enrollment_term_id, enrollment_type, hide_enrollmentless_courses, include, published, search_term, state, with_enrollments, destination):
     """Import Canvas courses via the REST API and store it in the destination data table."""
     client = AccountsAPI(url, api_key)
@@ -77,26 +70,25 @@ def get_courses(data, url, api_key, account_id, by_subaccounts, by_teachers, com
 
 
 @unsync.command()
-@click.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
-@click.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
-@click.option('--source', '-s', required=True, help='The name of the source data table to use.')
-@click.option('--account-id-field', required=True, default='id', help='Table field containg the id of the account to edit.')
-@click.option('--default-group-storage-quota-mb-field', default='default_group_storage_quota_mb', help='Table field containing the default_group_storage_quota_mb data.')
-@click.option('--default-storage-quota-mb-field', default='default_storage_quota_mb', help='Table field containing the default_storage_quota_mb data.')
-@click.option('--default-time-zone-field', default='default_time_zone', help='Table field containing the default_time_zone data.')
-@click.option('--default-user-storage-quota-mb-field', default='default_user_storage_quota_mb', help='Table field containing the default_user_storage_quota_mb data.')
-@click.option('--name-field', default='name', help='Table field containing the name data.')
-@click.option('--sis-account-id-field', default='sis_account_id', help='Table field containing the sis_account_id data.')
-@click.option('--services-field', default='services', help='Table field containing the services data.')
-@click.option('--settings-lock-all-announcements-locked-field', default='settings_lock_all_announcements_locked', help='Table field containing the settings_lock_all_announcements_locked data.')
-@click.option('--settings-lock-all-announcements-value-field', default='settings_lock_all_announcements_value', help='Table field containing the settings_lock_all_announcements_value data.')
-@click.option('--settings-restrict-student-future-listing-locked-field', default='settings_restrict_student_future_listing_locked', help='Table field containing the settings_restrict_student_future_listing_locked data.')
-@click.option('--settings-restrict-student-future-listing-value-field', default='settings_restrict_student_future_listing_value', help='Table field containing the settings_restrict_student_future_listing_value data.')
-@click.option('--settings-restrict-student-future-view-locked-field', default='settings_restrict_student_future_view_locked', help='Table field containing the settings_restrict_student_future_view_locked data.')
-@click.option('--settings-restrict-student-future-view-value-field', default='settings_restrict_student_future_view_value', help='Table field containing the settings_restrict_student_future_view_value data.')
-@click.option('--settings-restrict-student-past-view-locked-field', default='settings_restrict_student_past_view_locked', help='Table field containing the settings_restrict_student_past_view_locked data.')
-@click.option('--settings-restrict-student-past-view-value-field', default='settings_restrict_student_past_view_value', help='Table field containing the settings_restrict_student_past_view_value data.')
-@pass_data
+@unsync.option('--url', required=True, help='Canvas url to use. Usually something like <schoolname>.instructure.com.')
+@unsync.option('--api-key', required=True, help='API Key to use when accessing the Canvas instance. Can be generated in your profile section.')
+@unsync.option('--source', '-s', required=True, help='The name of the source data table to use.')
+@unsync.option('--account-id-field', required=True, default='id', help='Table field containg the id of the account to edit.')
+@unsync.option('--default-group-storage-quota-mb-field', default='default_group_storage_quota_mb', help='Table field containing the default_group_storage_quota_mb data.')
+@unsync.option('--default-storage-quota-mb-field', default='default_storage_quota_mb', help='Table field containing the default_storage_quota_mb data.')
+@unsync.option('--default-time-zone-field', default='default_time_zone', help='Table field containing the default_time_zone data.')
+@unsync.option('--default-user-storage-quota-mb-field', default='default_user_storage_quota_mb', help='Table field containing the default_user_storage_quota_mb data.')
+@unsync.option('--name-field', default='name', help='Table field containing the name data.')
+@unsync.option('--sis-account-id-field', default='sis_account_id', help='Table field containing the sis_account_id data.')
+@unsync.option('--services-field', default='services', help='Table field containing the services data.')
+@unsync.option('--settings-lock-all-announcements-locked-field', default='settings_lock_all_announcements_locked', help='Table field containing the settings_lock_all_announcements_locked data.')
+@unsync.option('--settings-lock-all-announcements-value-field', default='settings_lock_all_announcements_value', help='Table field containing the settings_lock_all_announcements_value data.')
+@unsync.option('--settings-restrict-student-future-listing-locked-field', default='settings_restrict_student_future_listing_locked', help='Table field containing the settings_restrict_student_future_listing_locked data.')
+@unsync.option('--settings-restrict-student-future-listing-value-field', default='settings_restrict_student_future_listing_value', help='Table field containing the settings_restrict_student_future_listing_value data.')
+@unsync.option('--settings-restrict-student-future-view-locked-field', default='settings_restrict_student_future_view_locked', help='Table field containing the settings_restrict_student_future_view_locked data.')
+@unsync.option('--settings-restrict-student-future-view-value-field', default='settings_restrict_student_future_view_value', help='Table field containing the settings_restrict_student_future_view_value data.')
+@unsync.option('--settings-restrict-student-past-view-locked-field', default='settings_restrict_student_past_view_locked', help='Table field containing the settings_restrict_student_past_view_locked data.')
+@unsync.option('--settings-restrict-student-past-view-value-field', default='settings_restrict_student_past_view_value', help='Table field containing the settings_restrict_student_past_view_value data.')
 def update_accounts(data, url, api_key, source,
                     account_id_field,
                     default_group_storage_quota_mb_field,

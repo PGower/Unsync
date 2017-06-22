@@ -1,12 +1,5 @@
-arrow==0.8.0
-click==6.6
-ldap3==1.4.0
-petl==1.0.11
-pyasn1==0.1.9
-python-dateutil==2.5.3
-PyYAML==3.12
-requests==2.11.1
-six==1.10.0
+click==6.7
 colorama
 ipython
-petname
+petl
+PyYAML

@@ -1,27 +1,22 @@
 """PETL Validate Command."""
-from __future__ import unicode_literals
-
-import click
+import unsync
 import petl
-from unsync.lib.unsync_data import pass_data
-from unsync.lib.unsync_commands import unsync
 
 
 @unsync.command()
-@click.option('--name', type=str, help='A name for this validation step. Will be printed in the output. Cosmetic only.')
-@click.option('--source', '-s', required=True, type=str, help='Name of the source data table/s.')
-@click.option('--header', '-h', multiple=True, type=str, help='The set of required headers.')
-@click.option('--test', '-t', multiple=True, type=click.Tuple([str, str, str]), help='Apply a test to a row/value and pass if no Exception is raised. \
+@unsync.option('--name', type=str, help='A name for this validation step. Will be printed in the output. Cosmetic only.')
+@unsync.option('--source', '-s', required=True, type=str, help='Name of the source data table/s.')
+@unsync.option('--header', '-h', multiple=True, type=str, help='The set of required headers.')
+@unsync.option('--test', '-t', multiple=True, type=unsync.Tuple([str, str, str]), help='Apply a test to a row/value and pass if no Exception is raised. \
                                                                                                   Tests are specified as 3 strings, first is a name \
                                                                                                   for the test, second is the fieldname to test against or \
                                                                                                   the special name __row__ to test the entire row and the \
                                                                                                   third is a string which will be evaluated with eval()')
-@click.option('--assertion', '-a', multiple=True, type=click.Tuple([str, str, str]), help='Apply an assertion to a row/value and pass if the assertion returns True. \
+@unsync.option('--assertion', '-a', multiple=True, type=unsync.Tuple([str, str, str]), help='Apply an assertion to a row/value and pass if the assertion returns True. \
                                                                                                        Assertions are specified as 3 strings, first is a name \
                                                                                                        for the assertion, second is the fieldname to test against or \
                                                                                                        the special name __row__ to test the entire row and the \
                                                                                                        third is a string which will be evaluated with eval()')
-@pass_data
 def validate(data, name, source, header, test, assertion):
     """Validate that a table meets the required constraints."""
     s = data.get(source)
@@ -55,12 +50,12 @@ def validate(data, name, source, header, test, assertion):
     problems = petl.validate(s, **params)
 
     if problems.nrows() > 0:
-        click.secho('{}Validation Failed!'.format(name), fg='red')
-        click.secho(str(problems.lookall()), fg='red')
+        unsync.secho('{}Validation Failed!'.format(name), fg='red')
+        unsync.secho(str(problems.lookall()), fg='red')
         raise PETLValidationError(problems)
     else:
         if data.config.debug is True:
-            click.secho('{}Validation Passed!'.format(name), fg='green')
+            unsync.secho('{}Validation Passed!'.format(name), fg='green')
 
 
 class PETLValidationError(Exception):

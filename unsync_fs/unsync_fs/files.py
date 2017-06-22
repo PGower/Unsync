@@ -1,19 +1,15 @@
 """File system list functions. Generates an optionally recursive table of data representing the files and folders at a given path."""
-import click
+import unsync
 import petl
 import os
-
-from unsync.lib.unsync_data import pass_data
-from unsync.lib.unsync_commands import unsync
 
 from fs import open_fs
 import shutil
 
 
 @unsync.command()
-@click.option('--path', '-p', required=True, type=str, help='The path to the file data we are going to be working with.')  # Not a click.path because it needs to accept url type paths as well.
-@click.option('--destination', '-d', required=True, help='The table to store file data in.')
-@pass_data
+@unsync.option('--path', '-p', required=True, type=str, help='The path to the file data we are going to be working with.')  # Not a click.path because it needs to accept url type paths as well.
+@unsync.option('--destination', '-d', required=True, help='The table to store file data in.')
 def list_files(data, path, destination):
     """List files in the given directory and save them in the destination table."""
     walk_data = []
@@ -60,12 +56,11 @@ list_files.display_name = 'list'
 
 
 @unsync.command()
-@click.option('--source', '-s', required=True, help='The table containing source and destination paths.')
-@click.option('--source-field', required=True, default='source', help='Field containg the source path.')
-@click.option('--destination-field', required=True, default='destination', help='Field containing the destination path.')
-@click.option('--results', help='Table to save the results of the copy operation to.')
-@click.option('--quiet/--no-quiet', default=False, help='Do not output status updates while copying.')
-@pass_data
+@unsync.option('--source', '-s', required=True, help='The table containing source and destination paths.')
+@unsync.option('--source-field', required=True, default='source', help='Field containg the source path.')
+@unsync.option('--destination-field', required=True, default='destination', help='Field containing the destination path.')
+@unsync.option('--results', help='Table to save the results of the copy operation to.')
+@unsync.option('--quiet/--no-quiet', default=False, help='Do not output status updates while copying.')
 def shcopy_files(data, source, source_field, destination_field, results, quiet):
     """Copy files from the source to the destination."""
     source = data.get(source)
@@ -80,12 +75,12 @@ def shcopy_files(data, source, source_field, destination_field, results, quiet):
             r['success'] = True
             r['message'] = "File copied successfully."
             if not quiet:
-                click.secho('Successfully copied {} to {}'.format(i[source_field], i[destination_field]), fg='green')
+                unsync.secho('Successfully copied {} to {}'.format(i[source_field], i[destination_field]), fg='green')
         except (shutil.Error, IOError) as e:
             r['success'] = False
             r['message'] = str(e)
             if not quiet:
-                click.secho('Failed copying {} to {}. Reason was: {}'.format(i[source_field], i[destination_field]), str(e), fg='red')
+                unsync.secho('Failed copying {} to {}. Reason was: {}'.format(i[source_field], i[destination_field]), str(e), fg='red')
 
         results_data.append(r)
 
