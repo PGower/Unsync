@@ -14,7 +14,7 @@ def export_command_stack(ctx, data, output_file, exit_after):
     """Export all of the commands following the export command in the call stack."""
     # Perform a quick check and make sure that there are no nested export calls. It wont work and I wont support it.
     if ctx.info_name in ctx.command_stack:
-        raise Exception('This is BROKEN.')  # TODO: raise a meaningful error.
+        raise ExportNestingError('Export commands cannot be nested.')
     with open(output_file, 'wb') as f:
         pickle.dump(ctx.command_stack, f)
     if exit_after is True:
@@ -29,5 +29,8 @@ def import_command_stack(ctx, data, input_file):
     with open(input_file, 'rb') as f:
         command_stack = pickle.load(f)
     n = NestedUnsyncCommands(command_stack)
-    click.echo('NestedUnsyncCommands.invoke()')
     n.invoke(ctx)
+
+
+class ExportNestingError(Exception):
+    pass
