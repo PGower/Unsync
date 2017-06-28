@@ -8,4 +8,6 @@ unsync_commands = [
     'print_all.print_all_to_screen',
     'move_tables_to_memory.move_tables_to_memory',
     'stats.stats',
+    'import_export.export_command_stack',
+    'import_export.import_command_stack',
 ]
