@@ -187,6 +187,18 @@ class UnsyncCommands(click.MultiCommand):
                 click.secho(f'Unable to find command: {name}', fg='red')
 
 
+class NestedUnsyncCommands(UnsyncCommands):
+    """A thin wrapper around the UnsyncCommands class that is loaded with a stack of commands (list of cli arguments) that should be run."""
+    def __init__(self, command_stack):
+        super(NestedUnsyncCommands, self).__init__(name='cli_prototype', chain=True)
+        self.command_stack = command_stack
+
+    def invoke(self, ctx):
+        # This is the context from the external scope.
+        ctx.protected_args = self.command_stack
+        return super(NestedUnsyncCommands, self).invoke(ctx)
+
+
 class UnsyncCommand(click.Command):
     """A custom command used in Unsync."""
 
@@ -218,6 +230,13 @@ class UnsyncCommand(click.Command):
             click.echo('\n')
 
         return r
+
+    def make_context(self, *args, **kwargs):
+        # Create the context as normal but save the ctx.args value in ctx.command_stack.
+        # ctx.command_stack will be everything down stream from the current command. 
+        ctx = super(UnsyncCommand, self).make_context(*args, **kwargs)
+        ctx.command_stack = ctx.args
+        return ctx
 
 
 class UnsyncOption(Option):
